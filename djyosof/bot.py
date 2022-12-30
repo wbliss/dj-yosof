@@ -22,4 +22,4 @@ async def on_message(message):
         await message.channel.send("Hello!")
 
 
-client.run(CONFIG.DISCORD_TOKEN)
+client.run(CONFIG.discord_token)
