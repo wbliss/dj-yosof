@@ -15,21 +15,21 @@ class DJYosof(commands.Bot):
 
         author_voice_channel = message.author.voice.channel
         current_voice_client = message.guild.voice_client
-        current_voice_channel = current_voice_client.channel
 
         # Not connected anywhere, connect
         if not current_voice_client:
             print(f"Joining: {author_voice_channel}")
             return await author_voice_channel.connect(*args, **kwargs)
 
+        current_voice_channel = current_voice_client.channel
         # If we're already in a channel for that guild check to see
         # if we need to move channels or do nothing
-        if author_voice_channel == current_voice_client:
+        if author_voice_channel == current_voice_channel:
             print(f"Already in {author_voice_channel}, not joining")
             return
 
         print(f"Joining: {author_voice_channel}")
-        return await current_voice_client.move_to(current_voice_channel)
+        return await current_voice_client.move_to(author_voice_channel)
 
     async def _leave(self, message):
         current_voice_client = message.guild.voice_client
@@ -47,7 +47,6 @@ class DJYosof(commands.Bot):
     def register_commands(self):
         @self.command(guild_ids=[460571766901964801], pass_context=True)
         async def join(ctx):
-            import ipdb; ipdb.set_trace()
             await self._connect_or_move(ctx.message)
 
         @self.command(guild_ids=[460571766901964801], pass_context=True)
@@ -61,4 +60,3 @@ class DJYosof(commands.Bot):
         @self.command(name="fuck off", guild_ids=[460571766901964801], pass_context=True)
         async def fuck_off(ctx):
             await self._leave(ctx.message)
-
