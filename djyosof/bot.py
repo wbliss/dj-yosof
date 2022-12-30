@@ -1,25 +1,20 @@
 import discord
 
-from settings import CONFIG
+class DJYosof(discord.Client):
+    """
+    The bot that will replace Yosof
+    """
+    def __init__(self):
+        intents = discord.Intents.default()
+        intents.message_content = True
+        super().__init__(intents=intents)
 
-intents = discord.Intents.default()
-intents.message_content = True
+    async def on_ready(self):
+        print(f"We have logged in as {self.user}")
 
-client = discord.Client(intents=intents)
+    async def on_message(self, message):
+        if message.author == self.user:
+            return
 
-
-@client.event
-async def on_ready():
-    print(f"We have logged in as {client.user}")
-
-
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
-
-    if message.content.startswith("$hello"):
-        await message.channel.send("Hello!")
-
-
-client.run(CONFIG.discord_token)
+        if message.content.startswith("$hello"):
+            await message.channel.send("Hello!")
