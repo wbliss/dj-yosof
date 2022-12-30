@@ -1,5 +1,7 @@
 import discord
 
+from djyosof.config import get_config
+
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -20,4 +22,6 @@ async def on_message(message):
         await message.channel.send("Hello!")
 
 
-client.run("placeholder")
+if __name__ == "__main__":
+    config = get_config()
+    client.run(config["discord_token"])
