@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+import ffmpeg
 
 class DJYosof(commands.Bot):
     """
@@ -14,16 +15,20 @@ class DJYosof(commands.Bot):
     async def _connect_or_move(self, message, *args, **kwargs):
 
         author_voice_channel = message.author.voice.channel
-        current_voice_client = message.guild.voice_client
+
+        # yeah this won't work
+        if not author_voice_channel:
+            return
 
         # Not connected anywhere, connect
+        current_voice_client = message.guild.voice_client
         if not current_voice_client:
             print(f"Joining: {author_voice_channel}")
             return await author_voice_channel.connect(*args, **kwargs)
 
-        current_voice_channel = current_voice_client.channel
         # If we're already in a channel for that guild check to see
         # if we need to move channels or do nothing
+        current_voice_channel = current_voice_client.channel
         if author_voice_channel == current_voice_channel:
             print(f"Already in {author_voice_channel}, not joining")
             return
@@ -35,11 +40,11 @@ class DJYosof(commands.Bot):
         current_voice_client = message.guild.voice_client
         await current_voice_client.disconnect()
 
-    async def _heman(self):
+    async def _play(self, voice):
         """
         you know what's coming
         """
-        pass
+        voice.play(discord.FFmpegPCMAudio(source="/Users/willbliss/code/dj-yosof/static/testsound.mp3"))
 
     async def on_ready(self):
         print(f"We have logged in as {self.user}")
@@ -60,3 +65,10 @@ class DJYosof(commands.Bot):
         @self.command(name="fuck off", guild_ids=[460571766901964801], pass_context=True)
         async def fuck_off(ctx):
             await self._leave(ctx.message)
+
+        @self.command(guild_ids=[460571766901964801], pass_context=True)
+        async def play(ctx):
+            voice = await self._connect_or_move(ctx.message)
+            if not voice:
+                return await ctx.send("Unable to connect to a voice channel :(")
+            await self._play(voice)

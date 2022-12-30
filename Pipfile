@@ -9,6 +9,8 @@ pyyaml = "*"
 ipdb = "*"
 pynacl = "*"
 pycord = "*"
+ffmpeg = "*"
+ffmpeg-python = "*"
 
 [dev-packages]
 
