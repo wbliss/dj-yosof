@@ -4,9 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-"discord.py" = "*"
 librespot = {git = "https://github.com/kokarare1212/librespot-python"}
 pyyaml = "*"
+ipdb = "*"
+pynacl = "*"
+pycord = "*"
 
 [dev-packages]
 
