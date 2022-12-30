@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 "discord.py" = "*"
 librespot = {git = "https://github.com/kokarare1212/librespot-python"}
+pyyaml = "*"
 
 [dev-packages]
 
