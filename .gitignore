@@ -132,4 +132,5 @@ dmypy.json
 .pyre/
 
 config.yaml
+credentials.json
 */.DS_Store

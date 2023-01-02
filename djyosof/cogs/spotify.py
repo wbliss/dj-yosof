@@ -4,6 +4,7 @@ from discord.ext import commands
 from discord.commands import slash_command
 
 from settings import CONFIG
+from djyosof.players.spotify import SpotifySource
 
 
 class SpotifyCog(commands.Cog):
@@ -70,4 +71,7 @@ class SpotifyCog(commands.Cog):
         """
         you know what's coming
         """
-        voice.play(discord.FFmpegPCMAudio(source=CONFIG.get("test_audio_source")))
+        spotify = SpotifySource()
+        spotify.load_track("0V3wPSX9ygBnCm8psDIegu")  # anti-hero
+
+        voice.play(spotify)
