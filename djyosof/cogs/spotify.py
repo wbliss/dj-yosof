@@ -39,11 +39,12 @@ class SpotifyCog(commands.Cog):
     async def _connect_or_move(
         self, interaction: Interaction, *args, **kwargs
     ) -> VoiceChannel | None:
-        author_voice_channel = interaction.user.voice.channel
-
+        author_voice = interaction.user.voice
         # yeah this won't work
-        if not author_voice_channel:
-            return
+        if not author_voice:
+            await interaction.response.send_message("Join a voice channel first.")
+
+        author_voice_channel = author_voice.channel
 
         # Not connected anywhere, connect
         current_voice_client = interaction.guild.voice_client
