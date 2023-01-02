@@ -8,11 +8,13 @@ from settings import CONFIG
 
 class SpotifySource(AudioSource):
     def __init__(self):
-        self.session = (
-            Session.Builder()
-            .user_pass(CONFIG.get("spotify_user"), CONFIG.get("spotify_pass"))
-            .create()
-        )
+        session_builder = Session.Builder().stored_file()
+        if not session_builder.login_credentials:
+            session_builder = Session.Builder().user_pass(
+                CONFIG.get("spotify_user"), CONFIG.get("spotify_pass")
+            )
+        self.session = session_builder.create()
+
         self.stream = None
 
     def load_track(self, track_id: str):
