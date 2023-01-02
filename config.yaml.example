@@ -1,1 +1,4 @@
 discord_token: test
+guild_id: test
+test_audio_source: /test.mp3
+opus_location: /libopus.dylib

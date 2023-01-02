@@ -1,5 +1,7 @@
 from djyosof.bot import DJYosof
+from djyosof.cogs.spotify import SpotifyCog
 from settings import CONFIG
 
-tha_dj = DJYosof(command_prefix="/")
-tha_dj.run(CONFIG.get("discord_token"))
+bot = DJYosof(command_prefix="/")
+bot.add_cog(SpotifyCog(bot))
+bot.run(CONFIG.get("discord_token"))

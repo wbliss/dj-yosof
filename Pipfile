@@ -8,11 +8,12 @@ librespot = {git = "https://github.com/kokarare1212/librespot-python"}
 pyyaml = "*"
 ipdb = "*"
 pynacl = "*"
-pycord = "*"
+py-cord = "*"
 ffmpeg = "*"
 ffmpeg-python = "*"
 
 [dev-packages]
+black = "*"
 
 [requires]
 python_version = "3.10"
