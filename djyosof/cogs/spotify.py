@@ -10,24 +10,24 @@ class SpotifyCog(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
 
-    @slash_command(guild_ids=[460571766901964801])
+    @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def hello(self, interaction: Interaction):
         """Says hello!"""
         await interaction.response.send_message(f"Hi, {interaction.user.mention}")
 
-    @slash_command(guild_ids=[460571766901964801])
+    @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def join(self, interaction: Interaction):
         await self._connect_or_move(interaction)
         await interaction.response.send_message(
             f"Joining: {interaction.user.voice.channel}"
         )
 
-    @slash_command(guild_ids=[460571766901964801])
+    @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def leave(self, interaction: Interaction):
         await self._leave(interaction)
         await interaction.response.send_message(f"Left voice channel.")
 
-    @slash_command(guild_ids=[460571766901964801])
+    @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def play(self, interaction: Interaction):
         voice = await self._connect_or_move(interaction)
         if not voice:
