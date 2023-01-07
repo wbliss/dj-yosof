@@ -1,6 +1,8 @@
+from queue import Queue
+from discord.ext import commands
 from discord import Interaction, VoiceClient
 
-from djyosof.audio_types.playable_audio import AudioType
+from djyosof.audio_types.playable_audio import AudioType, PlayableAudio
 
 
 async def connect_or_move(
@@ -36,11 +38,33 @@ async def leave(interaction: Interaction) -> None:
     return await current_voice_client.disconnect()
 
 
-async def queue_or_play(bot, track, voice, interaction):
-    if bot.queue.empty() and not voice.is_playing():
+async def queue_or_play(
+    bot: commands.Bot,
+    track: PlayableAudio,
+    voice: VoiceClient,
+    interaction: Interaction,
+):
+    if bot.queues[interaction.guild_id].empty() and not voice.is_playing():
         await bot.players[AudioType.spotify].play(track, voice, interaction)
     else:
-        bot.queue.put(track)
+        bot.queues[interaction.guild_id].put(track)
         await interaction.response.send_message(
             f"Added {track.name} by {track.artist} to the queue"
         )
+
+
+async def play_track(
+    bot: commands.Bot,
+    guild_id: int,
+    interaction: Interaction,
+    exception: Exception | None,
+):
+    track = bot.queues[guild_id].get()
+    player = bot.players[track.get_type()]
+    # interaction.response.send_message()
+    player.play(
+        track,
+        voice,
+        interaction,
+        after=lambda e: play_track(bot, guild_id, interaction, e),
+    )

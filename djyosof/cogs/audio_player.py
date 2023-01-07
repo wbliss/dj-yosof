@@ -18,8 +18,11 @@ class AudioPlayerCog(commands.Cog):
         )
 
         queue_markdown = ""
-        for idx, track in enumerate(list(self.bot.queue.queue)):
+        for idx, track in enumerate(list(self.bot.queues[interaction.guild_id].queue)):
             queue_markdown += f"**{idx+1}**. {track.name} - {track.artist}\n"
+
+        if queue_markdown == "":
+            queue_markdown = "Queue is empty!"
 
         embed.add_field(name="Queue", value=queue_markdown)
         await interaction.response.send_message("Current Queue", embed=embed)
