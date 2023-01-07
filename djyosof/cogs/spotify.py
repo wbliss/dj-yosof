@@ -1,5 +1,5 @@
 import discord
-from discord import Interaction, VoiceChannel
+from discord import Interaction, VoiceChannel, Option
 from discord.ext import commands
 from discord.commands import slash_command
 
@@ -28,15 +28,30 @@ class SpotifyCog(commands.Cog):
         await self._leave(interaction)
         await interaction.response.send_message(f"Left voice channel.")
 
-    @slash_command(guild_ids=CONFIG.get("guild_ids"))
-    async def play(self, interaction: Interaction):
+    @slash_command(
+        guild_ids=CONFIG.get("guild_ids"),
+    )
+    async def play(
+        self,
+        interaction: Interaction,
+        query: Option(str, "Query to search for", required=True),
+    ):
         voice = await self._connect_or_move(interaction)
         if not voice:
-            return await interaction.response.send_message(
+            await interaction.response.send_message(
                 "Unable to connect to a voice channel :("
             )
-        await self._play(voice)
 
+        spotify = SpotifySource()
+        tracks = spotify.search(query)
+        spotify.load_track(tracks[0].track_id)
+
+        voice.play(spotify.get_audio())
+        await interaction.response.send_message(
+            "Playing music!", embed=tracks[0].get_embed()
+        )
+
+    # Helpers
     async def _connect_or_move(
         self, interaction: Interaction, *args, **kwargs
     ) -> VoiceChannel | None:
@@ -66,12 +81,3 @@ class SpotifyCog(commands.Cog):
     async def _leave(self, interaction: Interaction):
         current_voice_client = interaction.guild.voice_client
         await current_voice_client.disconnect()
-
-    async def _play(self, voice):
-        """
-        you know what's coming
-        """
-        spotify = SpotifySource()
-        spotify.load_track("0V3wPSX9ygBnCm8psDIegu")  # anti-hero
-
-        voice.play(spotify)
