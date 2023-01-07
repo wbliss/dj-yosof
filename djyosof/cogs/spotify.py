@@ -1,10 +1,12 @@
 import discord
-from discord import Interaction, VoiceChannel, Option
+from discord import Interaction, VoiceClient, Option
 from discord.ext import commands
 from discord.commands import slash_command
 
+from djyosof.audio_types.playable_audio import AudioType
+from djyosof.cogs import utilities
+from djyosof.views.search_view import SearchView
 from settings import CONFIG
-from djyosof.players.spotify import SpotifySource
 
 
 class SpotifyCog(commands.Cog):
@@ -12,72 +14,23 @@ class SpotifyCog(commands.Cog):
         self.bot = bot
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
-    async def hello(self, interaction: Interaction):
-        """Says hello!"""
-        await interaction.response.send_message(f"Hi, {interaction.user.mention}")
-
-    @slash_command(guild_ids=CONFIG.get("guild_ids"))
-    async def join(self, interaction: Interaction):
-        await self._connect_or_move(interaction)
-        await interaction.response.send_message(
-            f"Joining: {interaction.user.voice.channel}"
-        )
-
-    @slash_command(guild_ids=CONFIG.get("guild_ids"))
-    async def leave(self, interaction: Interaction):
-        await self._leave(interaction)
-        await interaction.response.send_message(f"Left voice channel.")
-
-    @slash_command(
-        guild_ids=CONFIG.get("guild_ids"),
-    )
     async def play(
         self,
         interaction: Interaction,
         query: Option(str, "Query to search for", required=True),
     ):
-        voice = await self._connect_or_move(interaction)
-        if not voice:
-            await interaction.response.send_message(
-                "Unable to connect to a voice channel :("
-            )
+        tracks = self.bot.players[AudioType.spotify].search(query)
 
-        spotify = SpotifySource()
-        tracks = spotify.search(query)
-        spotify.load_track(tracks[0].track_id)
-
-        voice.play(spotify.get_audio())
-        await interaction.response.send_message(
-            "Playing music!", embed=tracks[0].get_embed()
+        embed = discord.Embed(
+            title="",
+            color=discord.Colour.blurple(),
         )
 
-    # Helpers
-    async def _connect_or_move(
-        self, interaction: Interaction, *args, **kwargs
-    ) -> VoiceChannel | None:
-        author_voice = interaction.user.voice
-        # yeah this won't work
-        if not author_voice:
-            await interaction.response.send_message("Join a voice channel first.")
+        tracklist_markdown = ""
+        for idx, track in enumerate(tracks):
+            tracklist_markdown += f"**{idx+1}**. {track.name} - {track.artist}\n"
 
-        author_voice_channel = author_voice.channel
+        embed.add_field(name="Search Results", value=tracklist_markdown)
 
-        # Not connected anywhere, connect
-        current_voice_client = interaction.guild.voice_client
-        if not current_voice_client:
-            print(f"Joining: {author_voice_channel}")
-            return await author_voice_channel.connect(*args, **kwargs)
-
-        # If we're already in a channel for that guild check to see
-        # if we need to move channels or do nothing
-        current_voice_channel = current_voice_client.channel
-        if author_voice_channel == current_voice_channel:
-            print(f"Already in {author_voice_channel}, not joining")
-            return
-
-        print(f"Joining: {author_voice_channel}")
-        return await current_voice_client.move_to(author_voice_channel)
-
-    async def _leave(self, interaction: Interaction):
-        current_voice_client = interaction.guild.voice_client
-        await current_voice_client.disconnect()
+        view = SearchView(tracks, self.bot)
+        await interaction.response.send_message("", embed=embed, view=view)
