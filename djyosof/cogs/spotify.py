@@ -16,7 +16,7 @@ class SpotifyCog(commands.Cog):
         self.bot.players[AudioType.spotify] = SpotifySource()
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
-    async def play(
+    async def spotify(
         self,
         interaction: Interaction,
         query: Option(str, "Query to search for", required=True),

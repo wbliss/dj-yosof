@@ -10,6 +10,10 @@ class AudioPlayerCog(commands.Cog):
         self.bot = bot
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
+    async def play(self, interaction: Interaction):
+        pass
+
+    @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def queue(self, interaction: Interaction):
         # TODO pagination
         embed = discord.Embed(

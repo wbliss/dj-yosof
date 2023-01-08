@@ -40,12 +40,3 @@ async def connect_or_move(
 async def leave(interaction: Interaction) -> None:
     current_voice_client = interaction.guild.voice_client
     return await current_voice_client.disconnect()
-
-
-async def queue(
-    bot: commands.Bot,
-    track: PlayableAudio,
-    voice: VoiceClient,
-    interaction: Interaction,
-):
-    bot.audio_players[interaction.guild_id].enqueue_and_play(track, interaction)
