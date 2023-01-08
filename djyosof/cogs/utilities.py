@@ -6,8 +6,6 @@ from discord.ext import commands
 from discord import Interaction, VoiceClient
 from discord.webhook.async_ import Webhook
 
-from djyosof.audio_types.playable_audio import AudioType, PlayableAudio
-
 
 async def connect_or_move(
     interaction: Interaction, *args, **kwargs
