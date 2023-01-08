@@ -1,6 +1,10 @@
+import asyncio
+import functools
+
 from queue import Queue
 from discord.ext import commands
 from discord import Interaction, VoiceClient
+from discord.webhook.async_ import Webhook
 
 from djyosof.audio_types.playable_audio import AudioType, PlayableAudio
 
@@ -38,33 +42,10 @@ async def leave(interaction: Interaction) -> None:
     return await current_voice_client.disconnect()
 
 
-async def queue_or_play(
+async def queue(
     bot: commands.Bot,
     track: PlayableAudio,
     voice: VoiceClient,
     interaction: Interaction,
 ):
-    if bot.queues[interaction.guild_id].empty() and not voice.is_playing():
-        await bot.players[AudioType.spotify].play(track, voice, interaction)
-    else:
-        bot.queues[interaction.guild_id].put(track)
-        await interaction.response.send_message(
-            f"Added {track.name} by {track.artist} to the queue"
-        )
-
-
-async def play_track(
-    bot: commands.Bot,
-    guild_id: int,
-    interaction: Interaction,
-    exception: Exception | None,
-):
-    track = bot.queues[guild_id].get()
-    player = bot.players[track.get_type()]
-    # interaction.response.send_message()
-    player.play(
-        track,
-        voice,
-        interaction,
-        after=lambda e: play_track(bot, guild_id, interaction, e),
-    )
+    bot.audio_players[interaction.guild_id].enqueue_and_play(track, interaction)

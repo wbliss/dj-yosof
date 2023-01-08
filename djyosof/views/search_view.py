@@ -37,4 +37,6 @@ class SearchResultButton(discord.ui.Button):
             )
 
         # Add to queue or just play if nothing in queue/playing
-        await utilities.queue_or_play(self.bot, self.track, voice, interaction)
+        await self.bot.audio_players[interaction.guild_id].enqueue_and_play(
+            self.track, voice, interaction
+        )

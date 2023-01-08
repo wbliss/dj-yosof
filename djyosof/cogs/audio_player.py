@@ -18,7 +18,9 @@ class AudioPlayerCog(commands.Cog):
         )
 
         queue_markdown = ""
-        for idx, track in enumerate(list(self.bot.queues[interaction.guild_id].queue)):
+        for idx, track in enumerate(
+            list(self.bot.audio_players[interaction.guild_id].queue._queue)
+        ):
             queue_markdown += f"**{idx+1}**. {track.name} - {track.artist}\n"
 
         if queue_markdown == "":

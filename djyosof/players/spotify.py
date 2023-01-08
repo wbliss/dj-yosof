@@ -1,5 +1,7 @@
+from collections.abc import Callable
+
 import discord
-from discord import AudioSource
+from discord import VoiceClient
 from librespot.core import Session, SearchManager
 from librespot.metadata import TrackId
 from librespot.audio.decoders import AudioQuality, VorbisOnlyAudioQuality
@@ -46,12 +48,11 @@ class SpotifySource:
         tracks = [SpotifyTrack(item) for item in resp.json()["tracks"]["items"]]
         return tracks
 
-    async def play(self, track: SpotifyTrack, voice, interaction, after=None):
+    def play(
+        self,
+        track: SpotifyTrack,
+        voice: VoiceClient,
+        after: Callable | None = None,
+    ):
         audio = self.load_track(track)
-
-        if not voice.is_playing():
-            voice.play(audio, after=after)
-
-            await interaction.response.send_message(
-                "Playing music!", embed=track.get_embed()
-            )
+        voice.play(audio, after=after)

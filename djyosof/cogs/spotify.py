@@ -4,6 +4,7 @@ from discord.ext import commands
 from discord.commands import slash_command
 
 from djyosof.audio_types.playable_audio import AudioType
+from djyosof.players.spotify import SpotifySource
 from djyosof.cogs import utilities
 from djyosof.views.search_view import SearchView
 from settings import CONFIG
@@ -12,6 +13,7 @@ from settings import CONFIG
 class SpotifyCog(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
+        self.bot.players[AudioType.spotify] = SpotifySource()
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def play(
