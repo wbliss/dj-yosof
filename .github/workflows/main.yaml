@@ -13,4 +13,4 @@ jobs:
       - uses: psf/black@stable
         with:
           options: "--check --verbose"
-          src: "./dj_yosof"
+          src: "./djyosof"
