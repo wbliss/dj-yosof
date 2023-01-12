@@ -1,0 +1,12 @@
+name: pull-request
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: pipenv install
+      - name: Run tests 
+        run: pipenv run python -m black --diff --check dj_yosof/
