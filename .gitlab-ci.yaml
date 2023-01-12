@@ -1,0 +1,11 @@
+stages:
+  - test
+
+test:
+  stage: test
+  image: alpine
+  script:
+    - pipenv install
+    - pipenv run python -m black --diff --check dj_yosof/
+    - pipenv run python -m pylint dj_yosof/
+    - pipenv run mypy dj_yosof/
