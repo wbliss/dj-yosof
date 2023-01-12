@@ -14,4 +14,4 @@ jobs:
       - name: Install dependencies
         run: pipenv install --dev
       - name: Run tests
-        run: pipenv run python -m black --diff --check dj_yosof/
+        run: pipenv run black --diff --check dj_yosof/
