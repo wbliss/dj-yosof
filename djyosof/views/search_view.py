@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+from djyosof.bot import DJYosof
 from djyosof.audio_types.playable_audio import PlayableAudio
 from djyosof.audio_types.spotify_track import SpotifyTrack
 from djyosof.cogs import utilities
@@ -10,7 +11,7 @@ class SearchView(discord.ui.View):
     def __init__(
         self,
         tracks: list[SpotifyTrack],
-        bot: commands.Bot,
+        bot: DJYosof,
     ):
         super().__init__(timeout=30, disable_on_timeout=True)
         for idx, track in enumerate(tracks):
@@ -22,11 +23,11 @@ class SearchResultButton(discord.ui.Button):
         self,
         index: int,
         track: PlayableAudio,
-        bot: commands.Bot,
+        bot: DJYosof,
     ):
         self.track = track
         self.bot = bot
-        super().__init__(label=index, style=discord.ButtonStyle.primary)
+        super().__init__(label=str(index), style=discord.ButtonStyle.primary)
 
     async def callback(self, interaction: discord.Interaction):
         voice = await utilities.connect_or_move(interaction)

@@ -17,6 +17,8 @@ asyncio = "*"
 black = "*"
 mypy = "*"
 pylint = "*"
+types-requests = "*"
+types-pyyaml = "*"
 
 [requires]
 python_version = "3.10"
