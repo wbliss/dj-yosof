@@ -18,3 +18,5 @@ jobs:
         run: pipenv run black --diff --check djyosof/
       - name: Run pylint
         run: pipenv run pylint --fail-under=8 djyosof/
+      - name: Run mypy
+        run: pipenv run mypy djyosof/
