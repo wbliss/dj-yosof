@@ -1,11 +1,10 @@
 import discord
-from discord import Interaction, VoiceClient, Option
+from discord import Interaction, Option
 from discord.ext import commands
 from discord.commands import slash_command
 
 from djyosof.audio_types.playable_audio import AudioType
 from djyosof.players.spotify import SpotifySource
-from djyosof.cogs import utilities
 from djyosof.views.search_view import SearchView
 from settings import CONFIG
 
@@ -13,7 +12,7 @@ from settings import CONFIG
 class SpotifyCog(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
-        self.bot.players[AudioType.spotify] = SpotifySource()
+        self.bot.players[AudioType.SPOTIFY] = SpotifySource()
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def spotify(
@@ -21,7 +20,7 @@ class SpotifyCog(commands.Cog):
         interaction: Interaction,
         query: Option(str, "Query to search for", required=True),
     ):
-        tracks = self.bot.players[AudioType.spotify].search(query)
+        tracks = self.bot.players[AudioType.SPOTIFY].search(query)
 
         embed = discord.Embed(
             title="",

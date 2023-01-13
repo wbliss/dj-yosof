@@ -14,5 +14,7 @@ jobs:
         run: python -m pip install pipenv
       - name: Install dependencies
         run: python -m pipenv install --dev
-      - name: Run tests
+      - name: Run black
         run: pipenv run black --diff --check djyosof/
+      - name: Run pylint
+        run: pipenv run pylint --fail-under=8 djyosof/

@@ -16,6 +16,7 @@ class AudioPlayer:
         self.next: Event = Event()
         self.bot: commands.Bot = bot
         self.is_playing: bool = False
+        self.guild_id = -1
 
     async def enqueue_and_play(
         self,

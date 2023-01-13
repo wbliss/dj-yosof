@@ -1,8 +1,7 @@
 import discord
-from discord import Interaction
 from discord.ext import commands
 
-from djyosof.audio_types.playable_audio import AudioType, PlayableAudio
+from djyosof.audio_types.playable_audio import PlayableAudio
 from djyosof.audio_types.spotify_track import SpotifyTrack
 from djyosof.cogs import utilities
 
