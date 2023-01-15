@@ -1,3 +1,5 @@
+"""Contains class that controls playing audio"""
+
 from asyncio import Event, Queue
 
 from discord import VoiceClient, Interaction
@@ -8,6 +10,10 @@ from djyosof.cogs import utilities
 
 
 class AudioPlayer:
+    """
+    Handles the queue and play loop of an audio player.
+    """
+
     def __init__(
         self,
         bot: DJYosof,
@@ -24,17 +30,20 @@ class AudioPlayer:
         voice: VoiceClient,
         interaction: Interaction,
     ):
+        """Queues a track and begins the play loop it not currently running."""
         await self.enqueue(track, interaction)
         if not self.is_playing:
             self.bot.loop.create_task(self.play_loop(voice, interaction))
 
     async def enqueue(self, track: PlayableAudio, interaction: Interaction):
+        """Adds a track to the end of a queue."""
         await self.queue.put(track)
         await interaction.response.send_message(
             f"Added {track.name} by {track.artist} to the queue"
         )
 
     async def play_loop(self, voice: VoiceClient, interaction: Interaction):
+        """Loop to play through any songs in the queue."""
         # Grab latest track off the queue and play it
         await self.bot.wait_until_ready()
         self.guild_id = interaction.guild_id

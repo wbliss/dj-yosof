@@ -1,5 +1,5 @@
+"""Contains class for view that displays search results"""
 import discord
-from discord.ext import commands
 
 from djyosof.bot import DJYosof
 from djyosof.audio_types.playable_audio import PlayableAudio
@@ -8,6 +8,11 @@ from djyosof.cogs import utilities
 
 
 class SearchView(discord.ui.View):
+    """
+    Discord view that shows search results and
+    allows user to choose one to add to queue
+    """
+
     def __init__(
         self,
         tracks: list[SpotifyTrack],
