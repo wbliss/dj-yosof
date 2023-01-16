@@ -2,7 +2,7 @@ from collections.abc import Callable
 
 import discord
 from discord import VoiceClient
-from librespot.core import Session, SearchManager
+from librespot.core import Session
 from librespot.metadata import TrackId
 from librespot.audio.decoders import AudioQuality, VorbisOnlyAudioQuality
 import requests
@@ -43,7 +43,7 @@ class SpotifySource:
                 "q": query,
                 "type": "track",
             },
-            headers={"Authorization": "Bearer %s" % token},
+            headers={"Authorization": f"Bearer {token}"},
         )
         tracks = [SpotifyTrack(item) for item in resp.json()["tracks"]["items"]]
         return tracks

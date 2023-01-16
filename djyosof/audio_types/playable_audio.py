@@ -1,11 +1,9 @@
 from enum import Enum
 
-import discord
-
 
 class AudioType(Enum):
-    spotify = "spotify"
-    youtube = "youtube"
+    SPOTIFY = "spotify"
+    YOUTUBE = "youtube"
 
 
 class PlayableAudio:

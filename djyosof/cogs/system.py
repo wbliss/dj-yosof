@@ -1,5 +1,4 @@
-import discord
-from discord import Interaction, VoiceClient, Option
+from discord import Interaction
 from discord.ext import commands
 from discord.commands import slash_command
 
@@ -27,4 +26,4 @@ class SystemCog(commands.Cog):
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def leave(self, interaction: Interaction):
         await utilities.leave(interaction)
-        await interaction.response.send_message(f"Left voice channel.")
+        await interaction.response.send_message("Left voice channel.")

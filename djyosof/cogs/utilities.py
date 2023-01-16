@@ -1,10 +1,4 @@
-import asyncio
-import functools
-
-from queue import Queue
-from discord.ext import commands
 from discord import Interaction, VoiceClient
-from discord.webhook.async_ import Webhook
 
 
 async def connect_or_move(

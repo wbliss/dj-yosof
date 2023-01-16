@@ -24,4 +24,4 @@ class SpotifyTrack(PlayableAudio):
         return embed
 
     def get_type(self):
-        return AudioType.spotify
+        return AudioType.SPOTIFY

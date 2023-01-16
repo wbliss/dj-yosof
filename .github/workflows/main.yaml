@@ -1,0 +1,22 @@
+name: pull-request
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10.4'
+      - name: Install pipenv
+        run: python -m pip install pipenv
+      - name: Install dependencies
+        run: python -m pipenv install --dev
+      - name: Run black
+        run: pipenv run black --diff --check djyosof/
+      - name: Run pylint
+        run: pipenv run pylint --fail-under=8 djyosof/
+      #- name: Run mypy # disabled because way too many failures atm
+        #run: pipenv run mypy djyosof/

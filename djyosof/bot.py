@@ -2,11 +2,8 @@ from collections import defaultdict
 
 import discord
 from discord.ext import commands
-import ffmpeg
 
-from djyosof.audio_types.playable_audio import AudioType
 from djyosof.players.audio_player import AudioPlayer
-from djyosof.players.spotify import SpotifySource
 from settings import CONFIG
 
 
