@@ -40,6 +40,7 @@ class SearchResultButton(discord.ui.Button):
             await interaction.response.send_message(
                 "Unable to connect to a voice channel :("
             )
+            return
 
         # Add to queue or just play if nothing in queue/playing
         await self.bot.audio_players[interaction.guild_id].enqueue_and_play(

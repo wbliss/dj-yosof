@@ -4,7 +4,6 @@ from asyncio import Event, Queue
 
 from discord import VoiceClient, Interaction
 
-from djyosof.bot import DJYosof
 from djyosof.audio_types.playable_audio import PlayableAudio
 from djyosof.cogs import utilities
 
@@ -16,11 +15,11 @@ class AudioPlayer:
 
     def __init__(
         self,
-        bot: DJYosof,
+        bot: "DJYosof",
     ):
         self.queue = Queue()
         self.next: Event = Event()
-        self.bot: DJYosof = bot
+        self.bot: "DJYosof" = bot
         self.is_playing: bool = False
         self.guild_id = -1
 
