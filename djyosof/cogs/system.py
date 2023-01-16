@@ -17,7 +17,12 @@ class SystemCog(commands.Cog):
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def join(self, interaction: Interaction):
-        await utilities.connect_or_move(interaction)
+        voice = await utilities.connect_or_move(interaction)
+        if not voice:
+            await interaction.response.send_message(
+                f"Unable to join: {interaction.user.voice.channel}"
+            )
+            return
 
         await interaction.response.send_message(
             f"Joining: {interaction.user.voice.channel}"
