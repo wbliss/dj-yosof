@@ -26,11 +26,11 @@ class SpotifyCog(commands.Cog):
         pattern = re.compile(
             r"https://open.spotify.com/(track|album|playlist)/(.{22}).*"
         )
-        matcher = pattern.search(link)
+        matcher = pattern.search(query)
 
         # media doesn't exist
         if matcher:
-            tracks = self.bot.players[AudioType.SPOTIFY].open_link(link)
+            tracks = self.bot.players[AudioType.SPOTIFY].open_link(query)
             voice = await utilities.connect_or_move(interaction)
             if not voice:
                 await interaction.response.send_message(
