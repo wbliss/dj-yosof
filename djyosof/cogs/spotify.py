@@ -26,6 +26,12 @@ class SpotifyCog(commands.Cog):
 
         if link:
             tracks = self.bot.players[AudioType.SPOTIFY].open_link(link)
+            voice = await utilities.connect_or_move(interaction)
+            if not voice:
+                await interaction.response.send_message(
+                    "Unable to connect to a voice channel :("
+                )
+                return
             await self.bot.audio_players[interaction.guild_id].enqueue_and_play(
                 tracks[:1], voice, interaction
             )
