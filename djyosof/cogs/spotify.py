@@ -19,7 +19,7 @@ class SpotifyCog(commands.Cog):
     async def spotify(
         self,
         interaction: Interaction,
-        query: Option(str, "Query to search for", required=False),
+        query: Option(str, "Query to search for", required=True),
     ):
         pattern = re.compile(
             r"https://open.spotify.com/(track|album|playlist)/(.{22}).*"
