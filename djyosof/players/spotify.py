@@ -58,8 +58,11 @@ class SpotifySource:
             album_json = resp.json()
             del album_json["tracks"]
             tracks_json = resp.json()["tracks"]["items"]
-            tracks_json["album"] = album_json
-            tracks = [SpotifyTrack(item) for item in tracks_json]
+            track_json["album"] = album_json
+            tracks = []
+            for item in tracks_json:
+                item["album"] = album_json
+                tracks.append(SpotifyTrack(item))
 
         return tracks
 
