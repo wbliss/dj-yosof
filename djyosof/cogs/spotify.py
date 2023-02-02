@@ -1,3 +1,5 @@
+import re
+
 import discord
 from discord import Interaction, Option
 from discord.ext import commands
