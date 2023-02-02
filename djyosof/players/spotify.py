@@ -1,3 +1,4 @@
+import re
 from collections.abc import Callable
 
 import discord
