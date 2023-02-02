@@ -49,13 +49,17 @@ class SpotifySource:
 
         token = self.session.tokens().get("user-read-email")
         resp = requests.get(
-            "https://api.spotify.com/v1/{media_type}s/media_id",
+            f"https://api.spotify.com/v1/{media_type}s/{media_id}",
             headers={"Authorization": f"Bearer {token}"},
         )
         if media_type == "track":
             tracks = [SpotifyTrack(response.json())]
         else:
-            tracks = [SpotifyTrack(item) for item in resp.json()["tracks"]["items"]]
+            album_json = resp.json()
+            del album_json["tracks"]
+            tracks_json = resp.json()["tracks"]["items"]
+            tracks_json["album"] = album_json
+            tracks = [SpotifyTrack(item) for item in tracks_json]
 
         return tracks
 
