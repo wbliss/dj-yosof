@@ -20,12 +20,14 @@ class SpotifyCog(commands.Cog):
         self,
         interaction: Interaction,
         query: Option(str, "Query to search for", required=False),
-        link: Option(str, "Link to Spotify media", required=False),
     ):
-        if not query and not link:
-            return
+        pattern = re.compile(
+            r"https://open.spotify.com/(track|album|playlist)/(.{22}).*"
+        )
+        matcher = pattern.search(link)
 
-        if link:
+        # media doesn't exist
+        if matcher:
             tracks = self.bot.players[AudioType.SPOTIFY].open_link(link)
             voice = await utilities.connect_or_move(interaction)
             if not voice:
@@ -45,7 +47,7 @@ class SpotifyCog(commands.Cog):
                 f"Added {len(tracks)} tracks to the queue"
             )
 
-        if query:
+        else:
             tracks = self.bot.players[AudioType.SPOTIFY].search(query)
 
             embed = discord.Embed(
