@@ -34,8 +34,7 @@ class SpotifyCog(commands.Cog):
                     track, voice, interaction
                 )
 
-
-        if query
+        if query:
             tracks = self.bot.players[AudioType.SPOTIFY].search(query)
 
             embed = discord.Embed(
