@@ -27,7 +27,7 @@ class SpotifyCog(commands.Cog):
         if link:
             tracks = self.bot.players[AudioType.SPOTIFY].open_link(link)
             await self.bot.audio_players[interaction.guild_id].enqueue_and_play(
-                track[:1], voice, interaction
+                tracks[:1], voice, interaction
             )
             for track in tracks[1:]:
                 await self.bot.audio_players[interaction.guild_id].enqueue(
