@@ -54,7 +54,7 @@ class SpotifySource:
         )
         if media_type == "track":
             tracks = [SpotifyTrack(response.json())]
-        else:
+        elif media_type == "album":
             album_json = resp.json()
             del album_json["tracks"]
             tracks_json = resp.json()["tracks"]["items"]
@@ -62,6 +62,8 @@ class SpotifySource:
             for item in tracks_json:
                 item["album"] = album_json
                 tracks.append(SpotifyTrack(item))
+        elif media_type == "playlist":  # TODO: fix album missing
+            tracks = [item for item in resp.json()["tracks"]["items"]]
 
         return tracks
 
