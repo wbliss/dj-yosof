@@ -4,6 +4,7 @@ from discord.ext import commands
 from discord.commands import slash_command
 
 from djyosof.audio_types.playable_audio import AudioType
+from djyosof.cogs import utilities
 from djyosof.players.spotify import SpotifySource
 from djyosof.views.search_view import SearchView
 from settings import CONFIG
