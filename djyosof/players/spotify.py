@@ -33,7 +33,32 @@ class SpotifySource:
             pipe=True,
         )
 
-    def search(self, query: str):
+    def open_link(self, link: str) -> list[SpotifyTrack]:
+        pattern = re.compile(
+            r"https://open.spotify.com/(track|album|playlist)/(.{22}).*"
+        )
+        matcher = pattern.search(link)
+
+        # media doesn't exist
+        if matcher is None:
+            return []
+
+        media_type = matcher.group(1)
+        media_id = matcher.group(2)
+
+        token = self.session.tokens().get("user-read-email")
+        resp = requests.get(
+            "https://api.spotify.com/v1/{media_type}s/media_id",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        if media_type == "track":
+            tracks = [SpotifyTrack(response.json())]
+        else:
+            tracks = [SpotifyTrack(item) for item in resp.json()["tracks"]["items"]]
+
+        return tracks
+
+    def search(self, query: str) -> list[SpotifyTrack]:
         token = self.session.tokens().get("user-read-email")
         resp = requests.get(
             "https://api.spotify.com/v1/search",

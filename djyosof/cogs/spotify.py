@@ -18,20 +18,36 @@ class SpotifyCog(commands.Cog):
     async def spotify(
         self,
         interaction: Interaction,
-        query: Option(str, "Query to search for", required=True),
+        query: Option(str, "Query to search for", required=False),
+        link: Option(str, "Link to Spotify media", required=False),
     ):
-        tracks = self.bot.players[AudioType.SPOTIFY].search(query)
+        if not query and not link:
+            return
 
-        embed = discord.Embed(
-            title="",
-            color=discord.Colour.blurple(),
-        )
+        if link:
+            tracks = self.bot.players[AudioType.SPOTIFY].open_link(link)
+            await self.bot.audio_players[interaction.guild_id].enqueue_and_play(
+                track[:1], voice, interaction
+            )
+            for track in tracks[1:]:
+                await self.bot.audio_players[interaction.guild_id].enqueue(
+                    track, voice, interaction
+                )
 
-        tracklist_markdown = ""
-        for idx, track in enumerate(tracks):
-            tracklist_markdown += f"**{idx+1}**. {track.name} - {track.artist}\n"
 
-        embed.add_field(name="Search Results", value=tracklist_markdown)
+        if query
+            tracks = self.bot.players[AudioType.SPOTIFY].search(query)
 
-        view = SearchView(tracks, self.bot)
-        await interaction.response.send_message("", embed=embed, view=view)
+            embed = discord.Embed(
+                title="",
+                color=discord.Colour.blurple(),
+            )
+
+            tracklist_markdown = ""
+            for idx, track in enumerate(tracks):
+                tracklist_markdown += f"**{idx+1}**. {track.name} - {track.artist}\n"
+
+            embed.add_field(name="Search Results", value=tracklist_markdown)
+
+            view = SearchView(tracks, self.bot)
+            await interaction.response.send_message("", embed=embed, view=view)
