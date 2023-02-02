@@ -37,9 +37,6 @@ class AudioPlayer:
     async def enqueue(self, track: PlayableAudio, interaction: Interaction):
         """Adds a track to the end of a queue."""
         await self.queue.put(track)
-        await interaction.followup.send(
-            f"Added {track.name} by {track.artist} to the queue"
-        )
 
     async def play_loop(self, voice: VoiceClient, interaction: Interaction):
         """Loop to play through any songs in the queue."""

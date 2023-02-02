@@ -41,6 +41,10 @@ class SpotifyCog(commands.Cog):
                     track, interaction
                 )
 
+            await interaction.response.send_message(
+                f"Added {len(tracks)} tracks to the queue"
+            )
+
         if query:
             tracks = self.bot.players[AudioType.SPOTIFY].search(query)
 
