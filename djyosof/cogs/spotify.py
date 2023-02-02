@@ -34,7 +34,7 @@ class SpotifyCog(commands.Cog):
                 )
                 return
             await self.bot.audio_players[interaction.guild_id].enqueue_and_play(
-                tracks[:1], voice, interaction
+                tracks[0], voice, interaction
             )
             for track in tracks[1:]:
                 await self.bot.audio_players[interaction.guild_id].enqueue(
