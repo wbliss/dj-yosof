@@ -1,6 +1,6 @@
 """Contains class that controls playing audio"""
 
-from asyncio import Event, Queue
+from asyncio import Event, Queue, sleep
 
 from discord import VoiceClient, Interaction
 
@@ -49,8 +49,10 @@ class AudioPlayer:
             self.next.clear()
 
             if self.queue.empty():
-                await utilities.leave(interaction)
-                break
+                await sleep(10)
+                if self.queue.empty():
+                    await utilities.leave(interaction)
+                    break
 
             track = await self.queue.get()
             player = self.bot.players[track.get_type()]
@@ -68,3 +70,21 @@ class AudioPlayer:
             await self.next.wait()
 
         self.is_playing = False
+
+    def skip(
+        self,
+        voice: VoiceClient,
+    ):
+        # Stops the current song so next will be picked up
+        voice.stop()
+
+    def stop(
+        self,
+        voice: VoiceClient,
+    ):
+        # Clear queue and stop playing
+        for _ in range(self.queue.qsize()):
+            self.queue.get_nowait()
+            self.queue.task_done()
+
+        voice.stop()

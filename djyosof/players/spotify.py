@@ -10,9 +10,10 @@ import requests
 
 from settings import CONFIG
 from djyosof.audio_types.spotify_track import SpotifyTrack
+from djyosof.players.base_source import BaseSource
 
 
-class SpotifySource:
+class SpotifySource(BaseSource):
     def __init__(self):
         session_builder = Session.Builder().stored_file()
         if not session_builder.login_credentials:
@@ -62,8 +63,10 @@ class SpotifySource:
             for item in tracks_json:
                 item["album"] = album_json
                 tracks.append(SpotifyTrack(item))
-        elif media_type == "playlist":  # TODO: fix album missing
-            tracks = [item for item in resp.json()["tracks"]["items"]]
+        elif media_type == "playlist":
+            tracks = [
+                SpotifyTrack(item["track"]) for item in resp.json()["tracks"]["items"]
+            ]
 
         return tracks
 
