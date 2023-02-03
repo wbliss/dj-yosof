@@ -1,3 +1,4 @@
+import re
 from collections.abc import Callable
 
 import discord
@@ -9,9 +10,10 @@ import requests
 
 from settings import CONFIG
 from djyosof.audio_types.spotify_track import SpotifyTrack
+from djyosof.players.base_source import BaseSource
 
 
-class SpotifySource:
+class SpotifySource(BaseSource):
     def __init__(self):
         session_builder = Session.Builder().stored_file()
         if not session_builder.login_credentials:
@@ -33,7 +35,42 @@ class SpotifySource:
             pipe=True,
         )
 
-    def search(self, query: str):
+    def open_link(self, link: str) -> list[SpotifyTrack]:
+        pattern = re.compile(
+            r"https://open.spotify.com/(track|album|playlist)/(.{22}).*"
+        )
+        matcher = pattern.search(link)
+
+        # media doesn't exist
+        if matcher is None:
+            return []
+
+        media_type = matcher.group(1)
+        media_id = matcher.group(2)
+
+        token = self.session.tokens().get("user-read-email")
+        resp = requests.get(
+            f"https://api.spotify.com/v1/{media_type}s/{media_id}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        if media_type == "track":
+            tracks = [SpotifyTrack(resp.json())]
+        elif media_type == "album":
+            album_json = resp.json()
+            del album_json["tracks"]
+            tracks_json = resp.json()["tracks"]["items"]
+            tracks = []
+            for item in tracks_json:
+                item["album"] = album_json
+                tracks.append(SpotifyTrack(item))
+        elif media_type == "playlist":
+            tracks = [
+                SpotifyTrack(item["track"]) for item in resp.json()["tracks"]["items"]
+            ]
+
+        return tracks
+
+    def search(self, query: str) -> list[SpotifyTrack]:
         token = self.session.tokens().get("user-read-email")
         resp = requests.get(
             "https://api.spotify.com/v1/search",
