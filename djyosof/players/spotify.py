@@ -54,7 +54,7 @@ class SpotifySource(BaseSource):
             headers={"Authorization": f"Bearer {token}"},
         )
         if media_type == "track":
-            tracks = [SpotifyTrack(response.json())]
+            tracks = [SpotifyTrack(resp.json())]
         elif media_type == "album":
             album_json = resp.json()
             del album_json["tracks"]
