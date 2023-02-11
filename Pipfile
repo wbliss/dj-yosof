@@ -12,6 +12,7 @@ py-cord = {git = "https://github.com/mattabullock/pycord"}
 ffmpeg = "*"
 ffmpeg-python = "*"
 asyncio = "*"
+pytube = "*"
 
 [dev-packages]
 black = "*"

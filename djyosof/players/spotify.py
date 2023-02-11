@@ -19,7 +19,6 @@ class SpotifySource:
                 CONFIG.get("spotify_user"), CONFIG.get("spotify_pass")
             )
         self.session = session_builder.create()
-        self.stream = None
 
     def load_track(self, track: SpotifyTrack):
         track_id = TrackId.from_uri(f"spotify:track:{track.track_id}")  # anti-hero
