@@ -25,7 +25,7 @@ class AudioPlayerCog(commands.Cog):
         for idx, track in enumerate(
             list(self.bot.audio_players[interaction.guild_id].queue._queue)
         ):
-            queue_markdown += f"**{idx+1}**. {track.name} - {track.artist}\n"
+            queue_markdown += f"**{idx+1}**. {track.get_display_name()}\n"
 
         if queue_markdown == "":
             queue_markdown = "Queue is empty!"

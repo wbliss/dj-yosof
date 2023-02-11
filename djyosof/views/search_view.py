@@ -3,7 +3,7 @@ import discord
 
 from djyosof.bot import DJYosof
 from djyosof.audio_types.playable_audio import PlayableAudio
-from djyosof.audio_types.spotify_track import SpotifyTrack
+from djyosof.audio_types.spotify import SpotifyTrack
 from djyosof.cogs import utilities
 
 

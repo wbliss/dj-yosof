@@ -11,7 +11,8 @@ from djyosof.audio_types.youtube import YoutubeTrack
 class YoutubeSource:
     def load_track(self, track: YoutubeTrack):
         bytes_stream = BytesIO()
-        track.streams.get_audio_only().stream_to_buffer(bytes_stream)
+        stream = track.video.streams.get_audio_only()
+        stream.stream_to_buffer(bytes_stream)
 
         return discord.FFmpegOpusAudio(
             source=bytes_stream,

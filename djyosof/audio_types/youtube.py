@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import discord
 
 from djyosof.audio_types.playable_audio import AudioType, PlayableAudio
@@ -16,9 +18,13 @@ class YoutubeTrack(PlayableAudio):
             title="Now Playing",
             color=discord.Colour.blurple(),
         )
-        embed.add_field(name="Title", value=f"{self.name} {self.length}", inline=True)
+        embed.add_field(name="Title", value=f"{self.get_display_name()}", inline=True)
         embed.set_image(url=self.thumbnail_url)
         return embed
+
+    def get_display_name(self):
+        length = timedelta(seconds=self.video_length)
+        return f"{self.title} ({str(length)})"
 
     def get_type(self):
         return AudioType.YOUTUBE

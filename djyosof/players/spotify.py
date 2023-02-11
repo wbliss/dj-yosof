@@ -8,7 +8,7 @@ from librespot.audio.decoders import AudioQuality, VorbisOnlyAudioQuality
 import requests
 
 from settings import CONFIG
-from djyosof.audio_types.spotify_track import SpotifyTrack
+from djyosof.audio_types.spotify import SpotifyTrack
 
 
 class SpotifySource:
