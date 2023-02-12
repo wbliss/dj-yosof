@@ -3,8 +3,12 @@
 ## Install
 
 External Dependencies:
- * ffmpeg - `brew install ffmpeg`
- * opus - `brew install opus`
+ * ffmpeg
+   * MacOS - `brew install ffmpeg`
+   * Linux - `apt install ffmpeg`
+ * opus
+   * MacOS - `brew install opus`
+   * Linux - `apt install libopus-dev`
 
 1. Copy config.yaml.example to config.yaml
 2. Fill out config.yaml
