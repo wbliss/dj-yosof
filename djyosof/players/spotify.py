@@ -12,7 +12,7 @@ from settings import CONFIG
 from djyosof.audio_types.spotify import SpotifyTrack
 
 
-class SpotifySource(BaseSource):
+class SpotifySource:
     def __init__(self):
         session_builder = Session.Builder().stored_file()
         if not session_builder.login_credentials:

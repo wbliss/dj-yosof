@@ -47,5 +47,5 @@ class SearchResultButton(discord.ui.Button):
             self.track, voice, interaction
         )
         await interaction.response.send_message(
-            f"Added {self.track.name} by {self.track.artist} to the queue"
+            f"Added {self.track.get_display_name()} to the queue"
         )

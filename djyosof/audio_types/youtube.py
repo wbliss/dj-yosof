@@ -24,7 +24,7 @@ class YoutubeTrack(PlayableAudio):
 
     def get_display_name(self):
         length = timedelta(seconds=self.video_length)
-        return f"{self.title} ({str(length)})"
+        return f"[{self.title} ({str(length)})]({self.video.watch_url})"
 
     def get_type(self):
         return AudioType.YOUTUBE
