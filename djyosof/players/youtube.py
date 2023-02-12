@@ -75,7 +75,9 @@ class YoutubeSource:
             return []
 
     def search(self, query: str):
-        return [YoutubeTrack(result) for result in Search(query).results[:5]]
+        return [
+            YoutubeTrack.from_pytube(result) for result in Search(query).results[:5]
+        ]
 
     def play(
         self,
