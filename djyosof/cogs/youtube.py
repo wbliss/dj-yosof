@@ -29,7 +29,7 @@ class YoutubeCog(commands.Cog):
 
         tracklist_markdown = ""
         for idx, track in enumerate(tracks):
-            tracklist_markdown += f"**{idx+1}**. {track.title} ({track.video_length})\n"
+            tracklist_markdown += f"**{idx+1}**. {track.get_display_name()}\n"
 
         embed.add_field(name="Search Results", value=tracklist_markdown)
 
