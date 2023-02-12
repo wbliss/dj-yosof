@@ -10,15 +10,12 @@ from djyosof.audio_types.youtube import YoutubeTrack
 
 class YoutubeSource:
     def load_track(self, track: YoutubeTrack):
-        bytes_stream = BytesIO()
+        FFMPEG_OPTS = {
+            "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5",
+            "options": "-vn",
+        }
         stream = track.video.streams.get_audio_only()
-        stream.stream_to_buffer(bytes_stream)
-
-        return discord.FFmpegOpusAudio(
-            source=bytes_stream,
-            bitrate=stream.abr,
-            pipe=True,
-        )
+        return discord.FFmpegPCMAudio(stream.url, **FFMPEG_OPTS)
 
     def search(self, query: str):
         return [YoutubeTrack(result) for result in Search(query).results[:5]]
