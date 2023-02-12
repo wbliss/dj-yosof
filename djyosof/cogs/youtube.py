@@ -35,6 +35,16 @@ class YoutubeCog(commands.Cog):
                     "Unable to connect to a voice channel :("
                 )
                 return
+
+            if not tracks:
+                await interaction.response.send_message(
+                    "No video found. NOTE: Playlist functionality is very buggy."
+                )
+                return
+
+            await interaction.response.send_message(
+                f"Added {len(tracks)} tracks to the queue"
+            )
             await self.bot.audio_players[interaction.guild_id].enqueue_and_play(
                 tracks[0], voice, interaction
             )
@@ -42,10 +52,6 @@ class YoutubeCog(commands.Cog):
                 await self.bot.audio_players[interaction.guild_id].enqueue(
                     track, interaction
                 )
-
-            await interaction.response.send_message(
-                f"Added {len(tracks)} tracks to the queue"
-            )
 
         else:
             tracks = self.bot.players[AudioType.YOUTUBE].search(query)

@@ -7,11 +7,24 @@ from pytube import YouTube
 
 
 class YoutubeTrack(PlayableAudio):
-    def __init__(self, video: YouTube):
-        self.title = video.title
-        self.thumbnail_url = video.thumbnail_url
-        self.video_length = video.length
-        self.video = video
+    def __init__(self, video: dict | None = None):
+        if not video:
+            return
+
+        self.title = video["title"]
+        self.thumbnail_url = video["thumbnail_url"]
+        self.video_length = video["video_length"]
+        self.watch_url = video["watch_url"]
+
+    @staticmethod
+    def from_pytube(video: YouTube):
+        yt = YoutubeTrack()
+        yt.title = video.title
+        yt.thumbnail_url = video.thumbnail_url
+        yt.video_length = video.length
+        yt.watch_url = video.watch_url
+
+        return yt
 
     def get_embed(self):
         embed = discord.Embed(
@@ -24,7 +37,7 @@ class YoutubeTrack(PlayableAudio):
 
     def get_display_name(self):
         length = timedelta(seconds=self.video_length)
-        return f"[{self.title} ({str(length)})]({self.video.watch_url})"
+        return f"[{self.title} ({str(length)})]({self.watch_url})"
 
     def get_type(self):
         return AudioType.YOUTUBE

@@ -64,9 +64,7 @@ class AudioPlayer:
             )
 
             print(f"Playing {track.get_display_name()}")
-            await interaction.followup.send(
-                content="Playing music!", embed=track.get_embed()
-            )
+            await interaction.followup.send(content="", embed=track.get_embed())
             await self.next.wait()
 
         self.is_playing = False

@@ -1,3 +1,4 @@
+import traceback
 from urllib.parse import urlparse, parse_qs
 from collections.abc import Callable
 from io import BytesIO
@@ -15,8 +16,41 @@ class YoutubeSource:
             "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5",
             "options": "-vn",
         }
-        stream = track.video.streams.get_audio_only()
+
+        yt = YouTube(track.watch_url)
+        stream = yt.streams.get_audio_only()
         return discord.FFmpegPCMAudio(stream.url, **FFMPEG_OPTS)
+
+    # TODO: burn this function to the ground
+    def parse_playlist(self, playlist: Playlist):
+        tracks = []
+
+        videos = playlist.initial_data["contents"]["twoColumnBrowseResultsRenderer"][
+            "tabs"
+        ][0]["tabRenderer"]["content"]["sectionListRenderer"]["contents"][0][
+            "itemSectionRenderer"
+        ][
+            "contents"
+        ][
+            0
+        ][
+            "playlistVideoListRenderer"
+        ][
+            "contents"
+        ]
+        for video in videos:
+            if "playlistVideoRenderer" not in video:
+                continue
+
+            _video = video["playlistVideoRenderer"]
+            track_data = {
+                "title": " ".join([run["text"] for run in _video["title"]["runs"]]),
+                "thumbnail_url": _video["thumbnail"]["thumbnails"][-1]["url"],
+                "video_length": int(_video["lengthSeconds"]),
+                "watch_url": f"https://www.youtube.com/watch?v={_video['videoId']}",
+            }
+            tracks.append(YoutubeTrack(track_data))
+        return tracks
 
     def open_link(self, link: str) -> list[YoutubeTrack]:
         parsed_url = urlparse(link)
@@ -28,13 +62,14 @@ class YoutubeSource:
             and "list" in query.keys()
             or parsed_url.path == "/playlist"
         ):
-            playlist = Playlist(link)
-            # TODO: fix this
-            # return [YoutubeTrack(video) for video in playlist.videos]
-            return []
+            try:
+                return self.parse_playlist(Playlist(link))
+            except KeyError as e:
+                track = traceback.format_exc()
+                print(track)
+                return []
         elif parsed_url.path == "/watch":
-            track = YoutubeTrack(YouTube(link))
-            return [track]
+            return [YoutubeTrack.from_pytube(YouTube(link))]
         else:
             # unrecognized link
             return []
