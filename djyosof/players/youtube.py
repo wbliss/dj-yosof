@@ -65,8 +65,7 @@ class YoutubeSource:
             try:
                 return self.parse_playlist(Playlist(link))
             except KeyError as e:
-                track = traceback.format_exc()
-                print(track)
+                print(traceback.format_exc())
                 return []
         elif parsed_url.path == "/watch":
             return [YoutubeTrack.from_pytube(YouTube(link))]
