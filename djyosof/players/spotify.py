@@ -9,11 +9,10 @@ from librespot.audio.decoders import AudioQuality, VorbisOnlyAudioQuality
 import requests
 
 from settings import CONFIG
-from djyosof.audio_types.spotify_track import SpotifyTrack
-from djyosof.players.base_source import BaseSource
+from djyosof.audio_types.spotify import SpotifyTrack
 
 
-class SpotifySource(BaseSource):
+class SpotifySource:
     def __init__(self):
         session_builder = Session.Builder().stored_file()
         if not session_builder.login_credentials:
@@ -21,7 +20,6 @@ class SpotifySource(BaseSource):
                 CONFIG.get("spotify_user"), CONFIG.get("spotify_pass")
             )
         self.session = session_builder.create()
-        self.stream = None
 
     def load_track(self, track: SpotifyTrack):
         track_id = TrackId.from_uri(f"spotify:track:{track.track_id}")  # anti-hero

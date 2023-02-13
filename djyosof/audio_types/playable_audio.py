@@ -15,3 +15,6 @@ class PlayableAudio:
 
     def get_type(self):
         raise NotImplementedError()
+
+    def get_display_name(self):
+        raise NotImplementedError()

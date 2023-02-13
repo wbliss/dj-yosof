@@ -63,10 +63,8 @@ class AudioPlayer:
                 after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set),
             )
 
-            print(f"Playing {track.name} by {track.artist}")
-            await interaction.followup.send(
-                content="Playing music!", embed=track.get_embed()
-            )
+            print(f"Playing {track.get_display_name()}")
+            await interaction.followup.send(content="", embed=track.get_embed())
             await self.next.wait()
 
         self.is_playing = False

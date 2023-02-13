@@ -27,12 +27,15 @@ class AudioPlayerCog(commands.Cog):
         for idx, track in enumerate(
             list(self.bot.audio_players[interaction.guild_id].queue._queue)[:10]
         ):
-            queue_markdown += f"  **{idx+1}**. {track.name} - {track.artist}\n"
+            queue_markdown += f"**{idx+1}**. {track.get_display_name()}\n"
 
         if queue_markdown == "":
             queue_markdown = "Queue is empty!"
         else:
-            queue_markdown += f"\nShowing 10 out of {len(list(self.bot.audio_players[interaction.guild_id].queue._queue))} tracks in the queue."
+            queue_length = len(
+                list(self.bot.audio_players[interaction.guild_id].queue._queue)
+            )
+            queue_markdown += f"\nShowing {max(10, queue_length)} out of {queue_length} tracks in the queue."
 
         embed.add_field(name="Queue", value=queue_markdown)
         await interaction.response.send_message("Current Queue", embed=embed)

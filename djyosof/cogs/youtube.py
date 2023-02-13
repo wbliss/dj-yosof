@@ -7,36 +7,44 @@ from discord.commands import slash_command
 
 from djyosof.audio_types.playable_audio import AudioType
 from djyosof.cogs import utilities
-from djyosof.players.spotify import SpotifySource
+from djyosof.players.youtube import YoutubeSource
 from djyosof.views.search_view import SearchView
 from settings import CONFIG
 
 
-class SpotifyCog(commands.Cog):
+class YoutubeCog(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
-        self.bot.players[AudioType.SPOTIFY] = SpotifySource()
+        self.bot.players[AudioType.YOUTUBE] = YoutubeSource()
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
-    async def spotify(
+    async def yt(
         self,
         interaction: Interaction,
         query: Option(str, "Query to search for", required=True),
     ):
-        pattern = re.compile(
-            r"https://open.spotify.com/(track|album|playlist)/(.{22}).*"
-        )
+        pattern = re.compile(r"https://(www.)?youtube.com/.+")
         matcher = pattern.search(query)
 
         # media doesn't exist
         if matcher:
-            tracks = self.bot.players[AudioType.SPOTIFY].open_link(query)
+            tracks = self.bot.players[AudioType.YOUTUBE].open_link(query)
             voice = await utilities.connect_or_move(interaction)
             if not voice:
                 await interaction.response.send_message(
                     "Unable to connect to a voice channel :("
                 )
                 return
+
+            if not tracks:
+                await interaction.response.send_message(
+                    "No video found. NOTE: Playlist functionality is very buggy."
+                )
+                return
+
+            await interaction.response.send_message(
+                f"Added {len(tracks)} tracks to the queue"
+            )
             await self.bot.audio_players[interaction.guild_id].enqueue_and_play(
                 tracks[0], voice, interaction
             )
@@ -45,12 +53,8 @@ class SpotifyCog(commands.Cog):
                     track, interaction
                 )
 
-            await interaction.response.send_message(
-                f"Added {len(tracks)} tracks to the queue"
-            )
-
         else:
-            tracks = self.bot.players[AudioType.SPOTIFY].search(query)
+            tracks = self.bot.players[AudioType.YOUTUBE].search(query)
 
             embed = discord.Embed(
                 title="",

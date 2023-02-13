@@ -10,7 +10,6 @@ class SpotifyTrack(PlayableAudio):
         self.album = search_response["album"]["name"]
         self.album_art_url = search_response["album"]["images"][1]["url"]
         self.track_id = search_response["id"]
-        self.audio_stream = None
 
     def get_embed(self):
         embed = discord.Embed(
@@ -22,6 +21,9 @@ class SpotifyTrack(PlayableAudio):
         embed.add_field(name="Album", value=self.album, inline=True)
         embed.set_image(url=self.album_art_url)
         return embed
+
+    def get_display_name(self):
+        return f"{self.name} by {self.artist}"
 
     def get_type(self):
         return AudioType.SPOTIFY
