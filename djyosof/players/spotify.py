@@ -15,7 +15,7 @@ from djyosof.audio_types.spotify import SpotifyTrack
 class SpotifySource:
     def __init__(self):
         self.session_builder = Session.Builder().stored_file()
-        if not session_builder.login_credentials:
+        if not self.session_builder.login_credentials:
             self.session_builder = Session.Builder().user_pass(
                 CONFIG.get("spotify_user"), CONFIG.get("spotify_pass")
             )
