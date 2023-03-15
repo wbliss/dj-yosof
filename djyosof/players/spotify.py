@@ -29,6 +29,7 @@ class SpotifySource:
             )
         except:  # TODO: catch specific exceptions, possible decorator for this functionality
             # retry after creating a new session
+            print("Spotify session expired, creating new one")
             self.session = self.session_builder.create()
             stream = self.session.content_feeder().load(
                 track_id, VorbisOnlyAudioQuality(AudioQuality.VERY_HIGH), False, None
@@ -56,6 +57,7 @@ class SpotifySource:
         try:
             token = self.session.tokens().get("user-read-email")
         except:
+            print("Spotify session expired, creating new one")
             self.session = self.session_builder.create()
             token = self.session.tokens().get("user-read-email")
 
@@ -85,6 +87,7 @@ class SpotifySource:
             token = self.session.tokens().get("user-read-email")
         except:
             # retry after creating new session
+            print("Spotify session expired, creating new one")
             self.session = self.session_builder.create()
             token = self.session.tokens().get("user-read-email")
 
