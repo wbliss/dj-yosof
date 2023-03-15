@@ -14,18 +14,25 @@ from djyosof.audio_types.spotify import SpotifyTrack
 
 class SpotifySource:
     def __init__(self):
-        session_builder = Session.Builder().stored_file()
+        self.session_builder = Session.Builder().stored_file()
         if not session_builder.login_credentials:
-            session_builder = Session.Builder().user_pass(
+            self.session_builder = Session.Builder().user_pass(
                 CONFIG.get("spotify_user"), CONFIG.get("spotify_pass")
             )
         self.session = session_builder.create()
 
     def load_track(self, track: SpotifyTrack):
         track_id = TrackId.from_uri(f"spotify:track:{track.track_id}")  # anti-hero
-        stream = self.session.content_feeder().load(
-            track_id, VorbisOnlyAudioQuality(AudioQuality.VERY_HIGH), False, None
-        )
+        try:
+            stream = self.session.content_feeder().load(
+                track_id, VorbisOnlyAudioQuality(AudioQuality.VERY_HIGH), False, None
+            )
+        except:  # TODO: catch specific exceptions, possible decorator for this functionality
+            # retry after creating a new session
+            self.session = self.session_builder.create()
+            stream = self.session.content_feeder().load(
+                track_id, VorbisOnlyAudioQuality(AudioQuality.VERY_HIGH), False, None
+            )
 
         return discord.FFmpegOpusAudio(
             source=stream.input_stream.stream(),
@@ -46,7 +53,12 @@ class SpotifySource:
         media_type = matcher.group(1)
         media_id = matcher.group(2)
 
-        token = self.session.tokens().get("user-read-email")
+        try:
+            token = self.session.tokens().get("user-read-email")
+        except:
+            self.session = self.session_builder.create()
+            token = self.session.tokens().get("user-read-email")
+
         resp = requests.get(
             f"https://api.spotify.com/v1/{media_type}s/{media_id}",
             headers={"Authorization": f"Bearer {token}"},
@@ -69,7 +81,13 @@ class SpotifySource:
         return tracks
 
     def search(self, query: str) -> list[SpotifyTrack]:
-        token = self.session.tokens().get("user-read-email")
+        try:
+            token = self.session.tokens().get("user-read-email")
+        except:
+            # retry after creating new session
+            self.session = self.session_builder.create()
+            token = self.session.tokens().get("user-read-email")
+
         resp = requests.get(
             "https://api.spotify.com/v1/search",
             {
