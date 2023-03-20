@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 
 import discord
@@ -24,7 +25,9 @@ class DJYosof(commands.Bot):
         try:
             discord.opus.load_opus(CONFIG.get("opus_location"))
         except OSError:
-            print("Opus library location invalid, voice commands will not work")
+            logging.warning(
+                "Opus library location invalid, voice commands will not work"
+            )
 
     async def on_ready(self):
-        print(f"We have logged in as {self.user}")
+        logging.info(f"We have logged in as {self.user}")

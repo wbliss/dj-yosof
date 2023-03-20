@@ -1,3 +1,4 @@
+import logging
 from discord import Interaction, VoiceClient
 
 
@@ -15,17 +16,17 @@ async def connect_or_move(
     # Not connected anywhere, connect
     current_voice_client = interaction.guild.voice_client
     if not current_voice_client:
-        print(f"Joining: {author_voice_channel}")
+        logging.debug(f"Joining: {author_voice_channel}")
         return await author_voice_channel.connect(*args, **kwargs)
 
     # If we're already in a channel for that guild check to see
     # if we need to move channels or do nothing
     current_voice_channel = current_voice_client.channel
     if author_voice_channel == current_voice_channel:
-        print(f"Already in {author_voice_channel}, not joining")
+        logging.debug(f"Already in {author_voice_channel}, not joining")
         return current_voice_client
 
-    print(f"Joining: {author_voice_channel}")
+    logging.debug(f"Joining: {author_voice_channel}")
     return await current_voice_client.move_to(author_voice_channel)
 
 
