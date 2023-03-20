@@ -80,9 +80,8 @@ class YoutubeSource:
                 YoutubeTrack.from_pytube(result) for result in Search(query).results[:5]
             ]
 
-        except TypeError e:
+        except TypeError as e:
             logging.error("Error getting pytube results", exc_info=e)
-
 
     def play(
         self,
