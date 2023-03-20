@@ -7,7 +7,7 @@ from djyosof.cogs.youtube import YoutubeCog
 from djyosof.cogs.audio_player import AudioPlayerCog
 from settings import CONFIG
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 def main():
