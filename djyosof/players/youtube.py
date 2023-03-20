@@ -75,9 +75,14 @@ class YoutubeSource:
             return []
 
     def search(self, query: str):
-        return [
-            YoutubeTrack.from_pytube(result) for result in Search(query).results[:5]
-        ]
+        try:
+            return [
+                YoutubeTrack.from_pytube(result) for result in Search(query).results[:5]
+            ]
+
+        except TypeError e:
+            logging.error("Error getting pytube results", exc_info=e)
+
 
     def play(
         self,
