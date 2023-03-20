@@ -8,6 +8,7 @@ async def connect_or_move(
     author_voice = interaction.user.voice
     # yeah this won't work
     if not author_voice:
+        logging.info(f"User not in voice channel")
         await interaction.response.send_message("Join a voice channel first.")
         return None
 
