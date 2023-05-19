@@ -1,6 +1,7 @@
 """Contains class that controls playing audio"""
 
 from asyncio import Event, Queue, sleep
+import logging
 
 from discord import VoiceClient, Interaction
 
@@ -63,7 +64,7 @@ class AudioPlayer:
                 after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set),
             )
 
-            print(f"Playing {track.get_display_name()}")
+            logging.info(f"Playing {track.get_display_name()}")
             await interaction.followup.send(content="", embed=track.get_embed())
             await self.next.wait()
 

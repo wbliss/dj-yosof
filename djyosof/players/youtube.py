@@ -1,3 +1,4 @@
+import logging
 import traceback
 from urllib.parse import urlparse, parse_qs
 from collections.abc import Callable
@@ -65,7 +66,7 @@ class YoutubeSource:
             try:
                 return self.parse_playlist(Playlist(link))
             except KeyError as e:
-                print(traceback.format_exc())
+                logging.info(traceback.format_exc())
                 return []
         elif parsed_url.path == "/watch":
             return [YoutubeTrack.from_pytube(YouTube(link))]
@@ -74,9 +75,13 @@ class YoutubeSource:
             return []
 
     def search(self, query: str):
-        return [
-            YoutubeTrack.from_pytube(result) for result in Search(query).results[:5]
-        ]
+        try:
+            return [
+                YoutubeTrack.from_pytube(result) for result in Search(query).results[:5]
+            ]
+
+        except TypeError as e:
+            logging.error("Error getting pytube results", exc_info=e)
 
     def play(
         self,
