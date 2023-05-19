@@ -8,7 +8,7 @@ librespot = {git = "https://github.com/kokarare1212/librespot-python"}
 pyyaml = "*"
 ipdb = "*"
 pynacl = "*"
-py-cord = {git = "https://github.com/mattabullock/pycord"}
+py-cord = "*"
 ffmpeg = "*"
 ffmpeg-python = "*"
 asyncio = "*"
