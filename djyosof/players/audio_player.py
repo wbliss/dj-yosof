@@ -22,7 +22,6 @@ class AudioPlayer:
         self.next: Event = Event()
         self.bot: "DJYosof" = bot
         self.is_playing: bool = False
-        self.guild_id = -1
 
     async def enqueue_and_play(
         self,
@@ -43,7 +42,7 @@ class AudioPlayer:
         """Loop to play through any songs in the queue."""
         # Grab latest track off the queue and play it
         await self.bot.wait_until_ready()
-        self.guild_id = interaction.guild_id
+        channel = self.bot.get_channel(interaction.channel_id)
 
         self.is_playing = True
         while not self.bot.is_closed():
@@ -65,7 +64,7 @@ class AudioPlayer:
             )
 
             logging.info(f"Playing {track.get_display_name()}")
-            await interaction.followup.send(content="", embed=track.get_embed())
+            await self.channel.send(content="", embed=track.get_embed())
             await self.next.wait()
 
         self.is_playing = False
