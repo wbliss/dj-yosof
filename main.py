@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from djyosof.bot import DJYosof
 from djyosof.cogs.system import SystemCog
