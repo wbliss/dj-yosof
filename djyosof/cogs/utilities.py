@@ -33,4 +33,6 @@ async def connect_or_move(
 
 async def leave(interaction: Interaction) -> None:
     current_voice_client = interaction.guild.voice_client
-    return await current_voice_client.disconnect()
+
+    if current_voice_client:
+        return await current_voice_client.disconnect()
