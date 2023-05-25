@@ -64,7 +64,7 @@ class AudioPlayer:
             )
 
             logging.info(f"Playing {track.get_display_name()}")
-            await self.channel.send(content="", embed=track.get_embed())
+            await channel.send(content="", embed=track.get_embed())
             await self.next.wait()
 
         self.is_playing = False
