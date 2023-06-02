@@ -12,7 +12,7 @@ class AudioPlayerCog(commands.Cog):
         self.bot = bot
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
-    async def play(self, interaction: Interaction):
+    async def pause(self, interaction: Interaction):
         pass
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
