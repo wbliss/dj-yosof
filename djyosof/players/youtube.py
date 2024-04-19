@@ -3,7 +3,7 @@ import traceback
 from urllib.parse import urlparse, parse_qs
 from collections.abc import Callable
 from io import BytesIO
-from pytube import Search, YouTube, Playlist
+from pytubefix import Search, YouTube, Playlist
 
 import discord
 from discord import VoiceClient

@@ -3,7 +3,7 @@ from datetime import timedelta
 import discord
 
 from djyosof.audio_types.playable_audio import AudioType, PlayableAudio
-from pytube import YouTube
+from pytubefix import YouTube
 
 
 class YoutubeTrack(PlayableAudio):
