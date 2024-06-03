@@ -69,7 +69,9 @@ class AudioPlayer:
             except Exception:
                 logging.info(f"Failed to play {track.get_display_name()}, skipping")
                 traceback.print_exc()
-                await channel.send(content=f"Failed to play {track.get_display_name()}, skipping")
+                await channel.send(
+                    content=f"Failed to play {track.get_display_name()}, skipping"
+                )
                 self.bot.loop.call_soon_threadsafe(self.next.set)
 
             await self.next.wait()
