@@ -12,7 +12,9 @@ class SystemCog(commands.Cog):
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def hello(self, ctx: ApplicationContext):
-        await ctx.interaction.response.send_message(f"Hi, {ctx.interaction.user.mention}")
+        await ctx.interaction.response.send_message(
+            f"Hi, {ctx.interaction.user.mention}"
+        )
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def join(self, ctx: ApplicationContext):
