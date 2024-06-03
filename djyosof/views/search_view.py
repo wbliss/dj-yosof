@@ -1,11 +1,12 @@
 """Contains class for view that displays search results"""
 
-import discord
 import logging
 
-from djyosof.bot import DJYosof
+import discord
+
 from djyosof.audio_types.playable_audio import PlayableAudio
 from djyosof.audio_types.spotify import SpotifyTrack
+from djyosof.bot import DJYosof
 from djyosof.cogs import utilities
 
 

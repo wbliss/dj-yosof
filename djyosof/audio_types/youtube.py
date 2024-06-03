@@ -1,9 +1,9 @@
 from datetime import timedelta
 
 import discord
+from pytube import YouTube
 
 from djyosof.audio_types.playable_audio import AudioType, PlayableAudio
-from pytube import YouTube
 
 
 class YoutubeTrack(PlayableAudio):

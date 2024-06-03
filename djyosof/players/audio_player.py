@@ -1,18 +1,17 @@
 """Contains class that controls playing audio"""
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from ..bot import DJYosof
-
-from asyncio import Event, Queue, sleep
 import logging
 import traceback
+from asyncio import Event, Queue, sleep
+from typing import TYPE_CHECKING
 
-from discord import VoiceClient, ApplicationContext
+from discord import ApplicationContext, VoiceClient
 
 from djyosof.audio_types.playable_audio import PlayableAudio
 from djyosof.cogs import utilities
+
+if TYPE_CHECKING:
+    from ..bot import DJYosof
 
 
 class AudioPlayer:
@@ -69,10 +68,10 @@ class AudioPlayer:
                     voice,
                     after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set),
                 )
-                logging.info(f"Playing {track.get_display_name()}")
+                logging.info("Playing %s", track.get_display_name())
                 await channel.send(content="", embed=track.get_embed())
             except Exception:
-                logging.info(f"Failed to play {track.get_display_name()}, skipping")
+                logging.info(f"Failed to play %s, skipping", track.get_display_name())
                 traceback.print_exc()
                 await channel.send(
                     content=f"Failed to play {track.get_display_name()}, skipping"

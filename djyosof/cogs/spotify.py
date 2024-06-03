@@ -2,8 +2,8 @@ import re
 
 import discord
 from discord import ApplicationContext, Option
-from discord.ext import commands
 from discord.commands import slash_command
+from discord.ext import commands
 
 from djyosof.audio_types.playable_audio import AudioType
 from djyosof.cogs import utilities

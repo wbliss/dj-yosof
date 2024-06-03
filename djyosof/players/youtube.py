@@ -1,12 +1,11 @@
 import logging
 import traceback
-from urllib.parse import urlparse, parse_qs
 from collections.abc import Callable
-from io import BytesIO
-from pytube import Search, YouTube, Playlist
+from urllib.parse import parse_qs, urlparse
 
 import discord
 from discord import VoiceClient
+from pytube import Playlist, Search, YouTube
 
 from djyosof.audio_types.youtube import YoutubeTrack
 
@@ -65,7 +64,7 @@ class YoutubeSource:
         ):
             try:
                 return self.parse_playlist(Playlist(link))
-            except KeyError as e:
+            except KeyError:
                 logging.info(traceback.format_exc())
                 return []
         elif parsed_url.path == "/watch":
@@ -74,7 +73,7 @@ class YoutubeSource:
             # unrecognized link
             return []
 
-    def search(self, query: str):
+    def search(self, query: str) -> list[YoutubeTrack]:
         try:
             return [
                 YoutubeTrack.from_pytube(result) for result in Search(query).videos[:5]
