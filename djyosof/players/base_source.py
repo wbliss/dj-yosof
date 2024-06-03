@@ -19,8 +19,5 @@ class BaseSource:
         return
 
     @abc.abstractmethod
-    def search(
-        self,
-        query: str
-    ):
+    def search(self, query: str):
         return
