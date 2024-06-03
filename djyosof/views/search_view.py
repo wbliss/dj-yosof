@@ -21,9 +21,12 @@ class SearchView(discord.ui.View):
         tracks: list[SpotifyTrack],
         bot: DJYosof,
     ):
-        super().__init__(timeout=30, disable_on_timeout=True)
-        for idx, track in enumerate(tracks):
-            self.add_item(SearchResultButton(idx + 1, track, bot))
+        super().__init__(
+            *[
+                SearchResultButton(idx + 1, track, bot)
+                for idx, track in enumerate(tracks)
+            ]
+        )
 
 
 class SearchResultButton(discord.ui.Button):
