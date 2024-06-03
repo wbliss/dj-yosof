@@ -1,4 +1,5 @@
 """Contains class for view that displays search results"""
+
 import discord
 import logging
 
