@@ -29,29 +29,23 @@ class YoutubeCog(commands.Cog):
         # media doesn't exist
         if matcher:
             tracks = self.bot.players[AudioType.YOUTUBE].open_link(query)
-            voice = await utilities.connect_or_move(ctx.interaction)
+            voice = await utilities.connect_or_move(ctx)
             if not voice:
-                await ctx.interaction.response.send_message(
-                    "Unable to connect to a voice channel :("
-                )
+                await ctx.respond("Unable to connect to a voice channel :(")
                 return
 
             if not tracks:
-                await ctx.interaction.response.send_message(
+                await ctx.respond(
                     "No video found. NOTE: Playlist functionality is very buggy."
                 )
                 return
 
-            await ctx.interaction.response.send_message(
-                f"Added {len(tracks)} tracks to the queue"
-            )
-            await self.bot.audio_players[ctx.interaction.guild_id].enqueue_and_play(
-                tracks[0], voice, ctx.interaction
+            await ctx.respond(f"Added {len(tracks)} tracks to the queue")
+            await self.bot.audio_players[ctx.guild_id].enqueue_and_play(
+                tracks[0], voice, ctx
             )
             for track in tracks[1:]:
-                await self.bot.audio_players[ctx.interaction.guild_id].enqueue(
-                    track, ctx.interaction
-                )
+                await self.bot.audio_players[ctx.guild_id].enqueue(track, ctx)
 
         else:
             tracks = self.bot.players[AudioType.YOUTUBE].search(query)
@@ -68,4 +62,4 @@ class YoutubeCog(commands.Cog):
             embed.add_field(name="Search Results", value=tracklist_markdown)
 
             view = SearchView(tracks, self.bot)
-            await ctx.interaction.response.send_message("", embed=embed, view=view)
+            await ctx.respond("", embed=embed, view=view)

@@ -38,7 +38,7 @@ class SearchResultButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         voice = await utilities.connect_or_move(interaction)
-        if not voice:
+        if not voice or not interaction.guild_id:
             await interaction.response.send_message(
                 "Unable to connect to a voice channel :("
             )

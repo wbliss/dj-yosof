@@ -1,10 +1,15 @@
 """Contains class that controls playing audio"""
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..bot import DJYosof
+
 from asyncio import Event, Queue, sleep
 import logging
 import traceback
 
-from discord import VoiceClient, Interaction
+from discord import VoiceClient, ApplicationContext
 
 from djyosof.audio_types.playable_audio import PlayableAudio
 from djyosof.cogs import utilities
@@ -19,7 +24,7 @@ class AudioPlayer:
         self,
         bot: "DJYosof",
     ):
-        self.queue = Queue()
+        self.queue: Queue = Queue()
         self.next: Event = Event()
         self.bot: "DJYosof" = bot
         self.is_playing: bool = False
@@ -28,22 +33,22 @@ class AudioPlayer:
         self,
         track: PlayableAudio,
         voice: VoiceClient,
-        interaction: Interaction,
+        ctx: ApplicationContext,
     ):
         """Queues a track and begins the play loop it not currently running."""
-        await self.enqueue(track, interaction)
+        await self.enqueue(track, ctx)
         if not self.is_playing:
-            self.bot.loop.create_task(self.play_loop(voice, interaction))
+            self.bot.loop.create_task(self.play_loop(voice, ctx))
 
-    async def enqueue(self, track: PlayableAudio, interaction: Interaction):
+    async def enqueue(self, track: PlayableAudio, ctx: ApplicationContext):
         """Adds a track to the end of a queue."""
         await self.queue.put(track)
 
-    async def play_loop(self, voice: VoiceClient, interaction: Interaction):
+    async def play_loop(self, voice: VoiceClient, ctx: ApplicationContext):
         """Loop to play through any songs in the queue."""
         # Grab latest track off the queue and play it
         await self.bot.wait_until_ready()
-        channel = self.bot.get_channel(interaction.channel_id)
+        channel = self.bot.get_channel(ctx.channel_id)
 
         self.is_playing = True
         while not self.bot.is_closed():
@@ -52,7 +57,7 @@ class AudioPlayer:
             if self.queue.empty():
                 await sleep(10)
                 if self.queue.empty():
-                    await utilities.leave(interaction)
+                    await utilities.leave(ctx)
                     break
 
             track = await self.queue.get()
