@@ -57,14 +57,19 @@ class AudioPlayer:
             track = await self.queue.get()
             player = self.bot.players[track.get_type()]
 
-            player.play(
-                track,
-                voice,
-                after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set),
-            )
+            try:
+                player.play(
+                    track,
+                    voice,
+                    after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set),
+                )
+                logging.info(f"Playing {track.get_display_name()}")
+                await channel.send(content="", embed=track.get_embed())
+            except:
+                logging.info(f"Failed to play {track.get_display_name()}, skipping")
+                await channel.send(content=f"Failed to play {track.get_display_name()}, skipping")
+                self.bot.loop.call_soon_threadsafe(self.next.set)
 
-            logging.info(f"Playing {track.get_display_name()}")
-            await channel.send(content="", embed=track.get_embed())
             await self.next.wait()
 
         self.is_playing = False
