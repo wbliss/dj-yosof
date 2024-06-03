@@ -12,7 +12,7 @@ py-cord = "*"
 ffmpeg = "*"
 ffmpeg-python = "*"
 asyncio = "*"
-pytubefix = "*"
+pytube = "*"
 
 [dev-packages]
 black = "*"

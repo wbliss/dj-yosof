@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "bfd60fce00c5e91707cc0b7980d443c30dfa4783eb8e79f1c04536e0316acf0c"
+            "sha256": "f293697cd5a6279fb58191380c7917b7d0136fc69daa7dfb7721da7225a95dd9"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -740,13 +740,13 @@
             ],
             "version": "==0.6.14a1"
         },
-        "pytubefix": {
+        "pytube": {
             "hashes": [
-                "sha256:0312c9459956f3577fa0b76d2dac06520e0d8207b2182d8da006215d566b45ef",
-                "sha256:a98348421c12677646dd6318eaa0ae9753849e8d4f5a03257dc152c4dddce9ac"
+                "sha256:076052efe76f390dfa24b1194ff821d4e86c17d41cb5562f3a276a8bcbfc9d1d",
+                "sha256:07b9904749e213485780d7eb606e5e5b8e4341aa4dccf699160876da00e12d78"
             ],
             "index": "pypi",
-            "version": "==5.6.3"
+            "version": "==15.0.0"
         },
         "pyyaml": {
             "hashes": [
@@ -1035,7 +1035,7 @@
                 "sha256:8ead48e31b92b2e217b6c9733a21afafe479d52d6e164dd25fb1a770c7c3cf94",
                 "sha256:e8a0083b4bb28fcffb6207a3bfc9e5d0a68be951dd7e336d5dcf639c682388c0"
             ],
-            "markers": "python_full_version >= '3.8.0'",
+            "markers": "python_version >= '3.8'",
             "version": "==3.2.2"
         },
         "black": {
@@ -1087,7 +1087,7 @@
                 "sha256:48fdfcb9face5d58a4f6dde2e72a1fb8dcaf8ab26f95ab49fab84c2ddefb0109",
                 "sha256:8ca5e72a8d85860d5a3fa69b8745237f2939afe12dbf656afbcb47fe72d947a6"
             ],
-            "markers": "python_full_version >= '3.8.0'",
+            "markers": "python_version >= '3.8'",
             "version": "==5.13.2"
         },
         "mccabe": {
@@ -1152,7 +1152,7 @@
                 "sha256:a0d503e138a4c123b27490a4f7beda6a01c6f288df0e4a8b79c7eb0dc7b4cc08",
                 "sha256:a482d51503a1ab33b1c67a6c3813a26953dbdc71c31dacaef9a838c4e29f5712"
             ],
-            "markers": "python_full_version >= '3.8.0'",
+            "markers": "python_version >= '3.8'",
             "version": "==0.12.1"
         },
         "platformdirs": {
@@ -1160,7 +1160,7 @@
                 "sha256:2d7a1657e36a80ea911db832a8a6ece5ee53d8de21edd5cc5879af6530b1bfee",
                 "sha256:38b7b51f512eed9e84a22788b4bce1de17c0adb134d6becb09836e37d8654cd3"
             ],
-            "markers": "python_full_version >= '3.8.0'",
+            "markers": "python_version >= '3.8'",
             "version": "==4.2.2"
         },
         "pylint": {
