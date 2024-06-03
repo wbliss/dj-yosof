@@ -1,21 +1,22 @@
 import logging
-from discord import Interaction, VoiceClient
+
+from discord import ApplicationContext, VoiceClient
 
 
 async def connect_or_move(
-    interaction: Interaction, *args, **kwargs
+    ctx: ApplicationContext, *args, **kwargs
 ) -> VoiceClient | None:
-    author_voice = interaction.user.voice
+    author_voice = ctx.user.voice
     # yeah this won't work
     if not author_voice:
         logging.info(f"User not in voice channel")
-        await interaction.response.send_message("Join a voice channel first.")
+        await ctx.respond("Join a voice channel first.")
         return None
 
     author_voice_channel = author_voice.channel
 
     # Not connected anywhere, connect
-    current_voice_client = interaction.guild.voice_client
+    current_voice_client = ctx.guild.voice_client
     if not current_voice_client:
         logging.info(f"Joining: {author_voice_channel}")
         return await author_voice_channel.connect(*args, **kwargs)
@@ -31,8 +32,8 @@ async def connect_or_move(
     return await current_voice_client.move_to(author_voice_channel)
 
 
-async def leave(interaction: Interaction) -> None:
-    current_voice_client = interaction.guild.voice_client
+async def leave(ctx: ApplicationContext) -> None:
+    current_voice_client = ctx.guild.voice_client
 
     if current_voice_client:
-        return await current_voice_client.disconnect()
+        await current_voice_client.disconnect(force=True)

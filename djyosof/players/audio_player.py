@@ -1,12 +1,17 @@
 """Contains class that controls playing audio"""
 
-from asyncio import Event, Queue, sleep
 import logging
+import traceback
+from asyncio import Event, Queue, sleep
+from typing import TYPE_CHECKING
 
-from discord import VoiceClient, Interaction
+from discord import ApplicationContext, VoiceClient
 
 from djyosof.audio_types.playable_audio import PlayableAudio
 from djyosof.cogs import utilities
+
+if TYPE_CHECKING:
+    from ..bot import DJYosof
 
 
 class AudioPlayer:
@@ -18,7 +23,7 @@ class AudioPlayer:
         self,
         bot: "DJYosof",
     ):
-        self.queue = Queue()
+        self.queue: Queue = Queue()
         self.next: Event = Event()
         self.bot: "DJYosof" = bot
         self.is_playing: bool = False
@@ -27,22 +32,22 @@ class AudioPlayer:
         self,
         track: PlayableAudio,
         voice: VoiceClient,
-        interaction: Interaction,
+        ctx: ApplicationContext,
     ):
         """Queues a track and begins the play loop it not currently running."""
-        await self.enqueue(track, interaction)
+        await self.enqueue(track, ctx)
         if not self.is_playing:
-            self.bot.loop.create_task(self.play_loop(voice, interaction))
+            self.bot.loop.create_task(self.play_loop(voice, ctx))
 
-    async def enqueue(self, track: PlayableAudio, interaction: Interaction):
+    async def enqueue(self, track: PlayableAudio, ctx: ApplicationContext):
         """Adds a track to the end of a queue."""
         await self.queue.put(track)
 
-    async def play_loop(self, voice: VoiceClient, interaction: Interaction):
+    async def play_loop(self, voice: VoiceClient, ctx: ApplicationContext):
         """Loop to play through any songs in the queue."""
         # Grab latest track off the queue and play it
         await self.bot.wait_until_ready()
-        channel = self.bot.get_channel(interaction.channel_id)
+        channel = self.bot.get_channel(ctx.channel_id)
 
         self.is_playing = True
         while not self.bot.is_closed():
@@ -51,20 +56,28 @@ class AudioPlayer:
             if self.queue.empty():
                 await sleep(10)
                 if self.queue.empty():
-                    await utilities.leave(interaction)
+                    await utilities.leave(ctx)
                     break
 
             track = await self.queue.get()
             player = self.bot.players[track.get_type()]
 
-            player.play(
-                track,
-                voice,
-                after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set),
-            )
+            try:
+                player.play(
+                    track,
+                    voice,
+                    after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set),
+                )
+                logging.info("Playing %s", track.get_display_name())
+                await channel.send(content="", embed=track.get_embed())
+            except Exception:
+                logging.info(f"Failed to play %s, skipping", track.get_display_name())
+                traceback.print_exc()
+                await channel.send(
+                    content=f"Failed to play {track.get_display_name()}, skipping"
+                )
+                self.bot.loop.call_soon_threadsafe(self.next.set)
 
-            logging.info(f"Playing {track.get_display_name()}")
-            await channel.send(content="", embed=track.get_embed())
             await self.next.wait()
 
         self.is_playing = False

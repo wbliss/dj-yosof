@@ -1,10 +1,12 @@
 """Contains class for view that displays search results"""
-import discord
+
 import logging
 
-from djyosof.bot import DJYosof
+import discord
+
 from djyosof.audio_types.playable_audio import PlayableAudio
 from djyosof.audio_types.spotify import SpotifyTrack
+from djyosof.bot import DJYosof
 from djyosof.cogs import utilities
 
 
@@ -37,7 +39,7 @@ class SearchResultButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         voice = await utilities.connect_or_move(interaction)
-        if not voice:
+        if not voice or not interaction.guild_id:
             await interaction.response.send_message(
                 "Unable to connect to a voice channel :("
             )

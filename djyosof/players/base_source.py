@@ -17,3 +17,7 @@ class BaseSource:
         after: Callable | None = None,
     ):
         return
+
+    @abc.abstractmethod
+    def search(self, query: str):
+        return

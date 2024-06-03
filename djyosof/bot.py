@@ -30,4 +30,4 @@ class DJYosof(commands.Bot):
             )
 
     async def on_ready(self):
-        logging.info(f"We have logged in as {self.user}")
+        logging.info("We have logged in as %s", self.user)

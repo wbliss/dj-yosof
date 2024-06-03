@@ -1,10 +1,10 @@
 import discord
-from discord import Interaction
-from discord.ext import commands
+from discord import ApplicationContext
 from discord.commands import slash_command
-from settings import CONFIG
+from discord.ext import commands
 
 from djyosof.cogs import utilities
+from settings import CONFIG
 
 
 class AudioPlayerCog(commands.Cog):
@@ -12,11 +12,11 @@ class AudioPlayerCog(commands.Cog):
         self.bot = bot
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
-    async def pause(self, interaction: Interaction):
+    async def pause(self, ctx: ApplicationContext):
         pass
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
-    async def queue(self, interaction: Interaction):
+    async def queue(self, ctx: ApplicationContext):
         # TODO pagination
         embed = discord.Embed(
             title="",
@@ -25,39 +25,33 @@ class AudioPlayerCog(commands.Cog):
 
         queue_markdown = ""
         for idx, track in enumerate(
-            list(self.bot.audio_players[interaction.guild_id].queue._queue)[:10]
+            list(self.bot.audio_players[ctx.guild_id].queue._queue)[:10]
         ):
             queue_markdown += f"**{idx+1}**. {track.get_display_name()}\n"
 
         if queue_markdown == "":
             queue_markdown = "Queue is empty!"
         else:
-            queue_length = len(
-                list(self.bot.audio_players[interaction.guild_id].queue._queue)
-            )
+            queue_length = len(list(self.bot.audio_players[ctx.guild_id].queue._queue))
             queue_markdown += f"\nShowing {max(10, queue_length)} out of {queue_length} tracks in the queue."
 
         embed.add_field(name="Queue", value=queue_markdown)
-        await interaction.response.send_message("Current Queue", embed=embed)
+        await ctx.respond("Current Queue", embed=embed)
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
-    async def skip(self, interaction: Interaction):
-        audio_player = self.bot.audio_players[interaction.guild_id]
-        voice = await utilities.connect_or_move(interaction)
+    async def skip(self, ctx: ApplicationContext):
+        audio_player = self.bot.audio_players[ctx.guild_id]
+        voice = await utilities.connect_or_move(ctx)
         if not voice:
-            await interaction.response.send_message(
-                "Unable to connect to a voice channel :("
-            )
+            await ctx.respond("Unable to connect to a voice channel :(")
         audio_player.skip(voice)
-        await interaction.response.send_message("Song skipped!")
+        await ctx.respond("Song skipped!")
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
-    async def stop(self, interaction: Interaction):
-        audio_player = self.bot.audio_players[interaction.guild_id]
-        voice = await utilities.connect_or_move(interaction)
+    async def stop(self, ctx: ApplicationContext):
+        audio_player = self.bot.audio_players[ctx.guild_id]
+        voice = await utilities.connect_or_move(ctx)
         if not voice:
-            await interaction.response.send_message(
-                "Unable to connect to a voice channel :("
-            )
+            await ctx.respond("Unable to connect to a voice channel :(")
         audio_player.stop(voice)
-        await interaction.response.send_message("Queue cleared and player stopped.")
+        await ctx.respond("Queue cleared and player stopped.")

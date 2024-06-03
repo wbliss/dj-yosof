@@ -3,14 +3,14 @@ import re
 from collections.abc import Callable
 
 import discord
+import requests
 from discord import VoiceClient
+from librespot.audio.decoders import AudioQuality, VorbisOnlyAudioQuality
 from librespot.core import Session
 from librespot.metadata import TrackId
-from librespot.audio.decoders import AudioQuality, VorbisOnlyAudioQuality
-import requests
 
-from settings import CONFIG
 from djyosof.audio_types.spotify import SpotifyTrack
+from settings import CONFIG
 
 
 class SpotifySource:
