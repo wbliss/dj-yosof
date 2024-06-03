@@ -2,6 +2,7 @@
 
 from asyncio import Event, Queue, sleep
 import logging
+import traceback
 
 from discord import VoiceClient, Interaction
 
@@ -65,8 +66,9 @@ class AudioPlayer:
                 )
                 logging.info(f"Playing {track.get_display_name()}")
                 await channel.send(content="", embed=track.get_embed())
-            except:
+            except Exception:
                 logging.info(f"Failed to play {track.get_display_name()}, skipping")
+                traceback.print_exc()
                 await channel.send(content=f"Failed to play {track.get_display_name()}, skipping")
                 self.bot.loop.call_soon_threadsafe(self.next.set)
 
