@@ -1,7 +1,7 @@
 import re
 
 import discord
-from discord import Interaction, Option
+from discord import ApplicationContext, Option
 from discord.ext import commands
 from discord.commands import slash_command
 
@@ -20,7 +20,7 @@ class YoutubeCog(commands.Cog):
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def yt(
         self,
-        interaction: Interaction,
+        ctx: ApplicationContext,
         query: Option(str, "Query to search for", required=True),
     ):
         pattern = re.compile(r"https://(www.)?youtube.com/.+")
@@ -29,28 +29,28 @@ class YoutubeCog(commands.Cog):
         # media doesn't exist
         if matcher:
             tracks = self.bot.players[AudioType.YOUTUBE].open_link(query)
-            voice = await utilities.connect_or_move(interaction)
+            voice = await utilities.connect_or_move(ctx.interaction)
             if not voice:
-                await interaction.response.send_message(
+                await ctx.interaction.response.send_message(
                     "Unable to connect to a voice channel :("
                 )
                 return
 
             if not tracks:
-                await interaction.response.send_message(
+                await ctx.interaction.response.send_message(
                     "No video found. NOTE: Playlist functionality is very buggy."
                 )
                 return
 
-            await interaction.response.send_message(
+            await ctx.interaction.response.send_message(
                 f"Added {len(tracks)} tracks to the queue"
             )
-            await self.bot.audio_players[interaction.guild_id].enqueue_and_play(
-                tracks[0], voice, interaction
+            await self.bot.audio_players[ctx.interaction.guild_id].enqueue_and_play(
+                tracks[0], voice, ctx.interaction
             )
             for track in tracks[1:]:
-                await self.bot.audio_players[interaction.guild_id].enqueue(
-                    track, interaction
+                await self.bot.audio_players[ctx.interaction.guild_id].enqueue(
+                    track, ctx.interaction
                 )
 
         else:
@@ -68,4 +68,4 @@ class YoutubeCog(commands.Cog):
             embed.add_field(name="Search Results", value=tracklist_markdown)
 
             view = SearchView(tracks, self.bot)
-            await interaction.response.send_message("", embed=embed, view=view)
+            await ctx.interaction.response.send_message("", embed=embed, view=view)

@@ -1,4 +1,4 @@
-from discord import Interaction
+from discord import ApplicationContext
 from discord.ext import commands
 from discord.commands import slash_command
 
@@ -11,24 +11,23 @@ class SystemCog(commands.Cog):
         self.bot = bot
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
-    async def hello(self, interaction: Interaction):
-        """Says hello!"""
-        await interaction.response.send_message(f"Hi, {interaction.user.mention}")
+    async def hello(self, ctx: ApplicationContext):
+        await ctx.interaction.response.send_message(f"Hi, {ctx.interaction.user.mention}")
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
-    async def join(self, interaction: Interaction):
+    async def join(self, ctx: ApplicationContext):
         voice = await utilities.connect_or_move(interaction)
         if not voice:
-            await interaction.response.send_message(
-                f"Unable to join: {interaction.user.voice.channel}"
+            await ctx.interaction.response.send_message(
+                f"Unable to join: {ctx.interaction.user.voice.channel}"
             )
             return
 
-        await interaction.response.send_message(
-            f"Joining: {interaction.user.voice.channel}"
+        await ctx.interaction.response.send_message(
+            f"Joining: {ctx.interaction.user.voice.channel}"
         )
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
-    async def leave(self, interaction: Interaction):
-        await utilities.leave(interaction)
-        await interaction.response.send_message("Left voice channel.")
+    async def leave(self, ctx: ApplicationContext):
+        await utilities.leave(ctx.interaction)
+        await ctx.interaction.response.send_message("Left voice channel.")
