@@ -49,6 +49,8 @@ class SearchResultButton(discord.ui.Button):
         await self.bot.audio_players[interaction.guild_id].enqueue_and_play(
             self.track, voice, interaction
         )
-        await interaction.response.send_message(
-            f"Added {self.track.get_display_name()} to the queue"
+        await interaction.edit(
+            content=f"Added {self.track.get_display_name()} to the queue",
+            embed=None,
+            view=None,
         )
