@@ -1,7 +1,5 @@
 """Contains class for view that displays search results"""
 
-import logging
-
 import discord
 
 from djyosof.audio_types.playable_audio import PlayableAudio
