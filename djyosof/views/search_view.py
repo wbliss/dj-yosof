@@ -1,7 +1,5 @@
 """Contains class for view that displays search results"""
 
-import logging
-
 import discord
 
 from djyosof.audio_types.playable_audio import PlayableAudio
@@ -21,9 +19,12 @@ class SearchView(discord.ui.View):
         tracks: list[SpotifyTrack],
         bot: DJYosof,
     ):
-        super().__init__(timeout=30, disable_on_timeout=True)
-        for idx, track in enumerate(tracks):
-            self.add_item(SearchResultButton(idx + 1, track, bot))
+        super().__init__(
+            *[
+                SearchResultButton(idx + 1, track, bot)
+                for idx, track in enumerate(tracks)
+            ]
+        )
 
 
 class SearchResultButton(discord.ui.Button):
@@ -49,6 +50,8 @@ class SearchResultButton(discord.ui.Button):
         await self.bot.audio_players[interaction.guild_id].enqueue_and_play(
             self.track, voice, interaction
         )
-        await interaction.response.send_message(
-            f"Added {self.track.get_display_name()} to the queue"
+        await interaction.edit(
+            content=f"Added {self.track.get_display_name()} to the queue",
+            embed=None,
+            view=None,
         )
