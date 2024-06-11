@@ -25,18 +25,26 @@ class AudioPlayerCog(commands.Cog):
 
         queue_markdown = ""
         for idx, track in enumerate(
-            list(self.bot.audio_players[ctx.guild_id].queue._queue)[:10]
+            (
+                [self.bot.audio_players[ctx.guild_id].now_playing]
+                + list(self.bot.audio_players[ctx.guild_id].queue._queue)
+            )[:10]
         ):
-            queue_markdown += f"**{idx+1}**. {track.get_display_name()}\n"
+            queue_markdown += f"**{idx+1}**. {track.get_display_name()}"
+            if idx == 0:
+                queue_markdown += " - NOW PLAYING"
+            queue_markdown += "\n"
 
         if queue_markdown == "":
             queue_markdown = "Queue is empty!"
         else:
-            queue_length = len(list(self.bot.audio_players[ctx.guild_id].queue._queue))
-            queue_markdown += f"\nShowing {max(10, queue_length)} out of {queue_length} tracks in the queue."
+            queue_length = (
+                len(list(self.bot.audio_players[ctx.guild_id].queue._queue)) + 1
+            )
+            queue_markdown += f"\nShowing {min(10, queue_length)} out of {queue_length} tracks in the queue."
 
         embed.add_field(name="Queue", value=queue_markdown)
-        await ctx.respond("Current Queue", embed=embed)
+        await ctx.respond("", embed=embed)
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def skip(self, ctx: ApplicationContext):
