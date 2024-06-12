@@ -5,7 +5,7 @@ import traceback
 from asyncio import Event, Queue, sleep
 from typing import TYPE_CHECKING
 
-from discord import ApplicationContext, VoiceClient
+from discord import ApplicationContext, VoiceClient, Message
 
 from djyosof.audio_types.playable_audio import PlayableAudio
 from djyosof.cogs import utilities
@@ -27,6 +27,7 @@ class AudioPlayer:
         self.next: Event = Event()
         self.bot: "DJYosof" = bot
         self.is_playing: bool = False
+        self.now_playing: PlayableAudio | None = None
 
     async def enqueue_and_play(
         self,
@@ -50,31 +51,42 @@ class AudioPlayer:
         channel = self.bot.get_channel(ctx.channel_id)
 
         self.is_playing = True
+        now_playing_message: Message = None
         while not self.bot.is_closed():
             self.next.clear()
 
             if self.queue.empty():
                 await sleep(10)
                 if self.queue.empty():
+                    if now_playing_message:
+                        await now_playing_message.delete()
                     await utilities.leave(ctx)
                     break
 
-            track = await self.queue.get()
-            player = self.bot.players[track.get_type()]
+            self.now_playing = await self.queue.get()
+            player = self.bot.players[self.now_playing.get_type()]
 
             try:
                 player.play(
-                    track,
+                    self.now_playing,
                     voice,
                     after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set),
                 )
-                logging.info("Playing %s", track.get_display_name())
-                await channel.send(content="", embed=track.get_embed())
+                logging.info("Playing %s", self.now_playing.get_display_name())
+
+                if now_playing_message:
+                    await now_playing_message.delete()
+
+                now_playing_message = await channel.send(
+                    content="", embed=self.now_playing.get_embed()
+                )
             except Exception:
-                logging.info(f"Failed to play %s, skipping", track.get_display_name())
+                logging.info(
+                    f"Failed to play %s, skipping", self.now_playing.get_display_name()
+                )
                 traceback.print_exc()
                 await channel.send(
-                    content=f"Failed to play {track.get_display_name()}, skipping"
+                    content=f"Failed to play {self.now_playing.get_display_name()}, skipping"
                 )
                 self.bot.loop.call_soon_threadsafe(self.next.set)
 
