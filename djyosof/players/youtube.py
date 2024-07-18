@@ -5,7 +5,7 @@ from urllib.parse import parse_qs, urlparse
 
 import discord
 from discord import VoiceClient
-from pytube import Playlist, Search, YouTube
+from pytubefix import Playlist, Search, YouTube
 
 from djyosof.audio_types.youtube import YoutubeTrack
 
