@@ -742,11 +742,11 @@
         },
         "pytubefix": {
             "hashes": [
-                "sha256:4491d5998ec9489798b475d17547bfc6cf22805d44fe3f0d9e095acd41639c7f",
-                "sha256:58daa95ac19ab806763dc2f4f4c4ce15c1897e47d992909f5b1f771bc14db04b"
+                "sha256:52d72f630169da3dc9db52e960a6b948d0bdae4387a93c8314c5c1a311f6c735",
+                "sha256:df0fd990a25ef130738c18cdf3756ce8699b69a74e52db8c18acd2ba2225f706"
             ],
             "index": "pypi",
-            "version": "==6.13.0"
+            "version": "==8.2.0"
         },
         "pyyaml": {
             "hashes": [

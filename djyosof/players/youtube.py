@@ -76,7 +76,7 @@ class YoutubeSource:
     def search(self, query: str) -> list[YoutubeTrack]:
         try:
             return [
-                YoutubeTrack.from_pytube(result) for result in Search(query).results[:5]
+                YoutubeTrack.from_pytube(result) for result in Search(query).videos[:5]
             ]
 
         except TypeError as e:
