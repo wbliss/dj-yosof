@@ -28,7 +28,9 @@ class SpotifySource:
             stream = self.session.content_feeder().load(
                 track_id, VorbisOnlyAudioQuality(AudioQuality.VERY_HIGH), False, None
             )
-        except:  # TODO: catch specific exceptions, possible decorator for this functionality
+        except (
+            Exception
+        ):  # TODO: catch specific exceptions, possible decorator for this functionality
             # retry after creating a new session
             logging.info("Spotify session expired, creating new one")
             self.session = self.session_builder.create()
@@ -57,7 +59,7 @@ class SpotifySource:
 
         try:
             token = self.session.tokens().get("user-read-email")
-        except:
+        except Exception:
             logging.info("Spotify session expired, creating new one")
             self.session = self.session_builder.create()
             token = self.session.tokens().get("user-read-email")
@@ -86,7 +88,7 @@ class SpotifySource:
     def search(self, query: str) -> list[SpotifyTrack]:
         try:
             token = self.session.tokens().get("user-read-email")
-        except:
+        except Exception:
             # retry after creating new session
             logging.info("Spotify session expired, creating new one")
             self.session = self.session_builder.create()
