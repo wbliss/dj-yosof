@@ -17,8 +17,9 @@ class YoutubeSource:
             "options": "-vn",
         }
 
-        yt = YouTube(track.watch_url)
+        yt = YouTube(track.watch_url, "WEB_EMBED")
         stream = yt.streams.get_audio_only()
+
         return discord.FFmpegPCMAudio(stream.url, **FFMPEG_OPTS)
 
     # TODO: burn this function to the ground
@@ -29,15 +30,7 @@ class YoutubeSource:
             "tabs"
         ][0]["tabRenderer"]["content"]["sectionListRenderer"]["contents"][0][
             "itemSectionRenderer"
-        ][
-            "contents"
-        ][
-            0
-        ][
-            "playlistVideoListRenderer"
-        ][
-            "contents"
-        ]
+        ]["contents"][0]["playlistVideoListRenderer"]["contents"]
         for video in videos:
             if "playlistVideoRenderer" not in video:
                 continue
@@ -68,7 +61,7 @@ class YoutubeSource:
                 logging.info(traceback.format_exc())
                 return []
         elif parsed_url.path == "/watch":
-            return [YoutubeTrack.from_pytube(YouTube(link))]
+            return [YoutubeTrack.from_pytube(YouTube(link, "WEB_EMBED"))]
         else:
             # unrecognized link
             return []

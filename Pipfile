@@ -4,15 +4,15 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-librespot = {git = "https://github.com/kokarare1212/librespot-python"}
 pyyaml = "*"
 ipdb = "*"
 pynacl = "*"
-py-cord = "*"
+py-cord = "==2.7.0rc1"
 ffmpeg = "*"
 ffmpeg-python = "*"
 asyncio = "*"
 pytubefix = "*"
+librespot = {git = "https://github.com/kokarare1212/librespot-python"}
 
 [dev-packages]
 black = "*"
@@ -20,6 +20,7 @@ mypy = "*"
 pylint = "*"
 types-requests = "*"
 types-pyyaml = "*"
+ruff = "*"
 
 [requires]
-python_version = "3.10"
+python_version = "3.13"
