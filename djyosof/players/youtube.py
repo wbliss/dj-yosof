@@ -5,7 +5,7 @@ from urllib.parse import parse_qs, urlparse
 
 import discord
 from discord import VoiceClient
-from pytube import Playlist, Search, YouTube
+from pytubefix import Playlist, Search, YouTube
 
 from djyosof.audio_types.youtube import YoutubeTrack
 
@@ -17,8 +17,9 @@ class YoutubeSource:
             "options": "-vn",
         }
 
-        yt = YouTube(track.watch_url)
+        yt = YouTube(track.watch_url, "WEB_EMBED")
         stream = yt.streams.get_audio_only()
+
         return discord.FFmpegPCMAudio(stream.url, **FFMPEG_OPTS)
 
     # TODO: burn this function to the ground
@@ -29,15 +30,7 @@ class YoutubeSource:
             "tabs"
         ][0]["tabRenderer"]["content"]["sectionListRenderer"]["contents"][0][
             "itemSectionRenderer"
-        ][
-            "contents"
-        ][
-            0
-        ][
-            "playlistVideoListRenderer"
-        ][
-            "contents"
-        ]
+        ]["contents"][0]["playlistVideoListRenderer"]["contents"]
         for video in videos:
             if "playlistVideoRenderer" not in video:
                 continue
@@ -68,7 +61,7 @@ class YoutubeSource:
                 logging.info(traceback.format_exc())
                 return []
         elif parsed_url.path == "/watch":
-            return [YoutubeTrack.from_pytube(YouTube(link))]
+            return [YoutubeTrack.from_pytube(YouTube(link, "WEB_EMBED"))]
         else:
             # unrecognized link
             return []
@@ -76,7 +69,7 @@ class YoutubeSource:
     def search(self, query: str) -> list[YoutubeTrack]:
         try:
             return [
-                YoutubeTrack.from_pytube(result) for result in Search(query).results[:5]
+                YoutubeTrack.from_pytube(result) for result in Search(query).videos[:5]
             ]
 
         except TypeError as e:

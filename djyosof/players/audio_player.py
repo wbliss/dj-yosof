@@ -82,7 +82,7 @@ class AudioPlayer:
                 )
             except Exception:
                 logging.info(
-                    f"Failed to play %s, skipping", self.now_playing.get_display_name()
+                    f"Failed to play {self.now_playing.get_display_name()}, skipping"
                 )
                 traceback.print_exc()
                 await channel.send(
