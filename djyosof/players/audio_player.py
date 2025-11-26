@@ -77,9 +77,11 @@ class AudioPlayer:
                 if now_playing_message:
                     await now_playing_message.delete()
 
-                now_playing_message = await channel.send(
-                    content="", embed=self.now_playing.get_embed()
-                )
+                embed = self.now_playing.get_embed()
+                queue_markdown = self._get_queue_markdown(ctx)
+                embed.add_field(name="Queue", value=queue_markdown)
+
+                now_playing_message = await channel.send(content="", embed=embed)
             except Exception:
                 logging.info(
                     f"Failed to play {self.now_playing.get_display_name()}, skipping"
@@ -111,3 +113,22 @@ class AudioPlayer:
             self.queue.task_done()
 
         voice.stop()
+
+    def _get_queue_markdown(self, ctx: ApplicationContext):
+        queue_markdown = ""
+        for idx, track in enumerate(
+            ([self.now_playing] + list(self.queue._queue))[:10]
+        ):
+            queue_markdown += f"**{idx + 1}**. {track.get_display_name()}"
+            if idx == 0:
+                queue_markdown += " - NOW PLAYING"
+            queue_markdown += "\n"
+
+        if queue_markdown == "":
+            queue_markdown = "Queue is empty!"
+        else:
+            queue_length = (
+                len(list(self.bot.audio_players[ctx.guild_id].queue._queue)) + 1
+            )
+            queue_markdown += f"\nShowing {min(10, queue_length)} out of {queue_length} tracks in the queue."
+        return queue_markdown
