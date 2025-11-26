@@ -41,9 +41,7 @@ class SearchResultButton(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         voice = await utilities.connect_or_move(interaction)
         if not voice or not interaction.guild_id:
-            await interaction.response.send_message(
-                "Unable to connect to a voice channel :("
-            )
+            await interaction.respond("Unable to connect to a voice channel :(")
             return
 
         # Add to queue or just play if nothing in queue/playing
@@ -51,7 +49,10 @@ class SearchResultButton(discord.ui.Button):
             self.track, voice, interaction
         )
         await interaction.edit(
-            content=f"Added {self.track.get_display_name()} to the queue",
+            content="Track added.",
             embed=None,
             view=None,
+        )
+        await interaction.respond(
+            f"Added {self.track.get_display_name()} to the queue",
         )

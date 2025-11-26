@@ -53,9 +53,9 @@ class SpotifyCog(commands.Cog):
 
             tracklist_markdown = ""
             for idx, track in enumerate(tracks):
-                tracklist_markdown += f"**{idx+1}**. {track.get_display_name()}\n"
+                tracklist_markdown += f"**{idx + 1}**. {track.get_display_name()}\n"
 
             embed.add_field(name="Search Results", value=tracklist_markdown)
 
             view = SearchView(tracks, self.bot)
-            await ctx.respond("", embed=embed, view=view)
+            await ctx.respond("", ephemeral=True, embed=embed, view=view)
