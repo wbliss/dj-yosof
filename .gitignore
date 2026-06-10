@@ -1,5 +1,10 @@
 # dj-yosof specific
 config.yaml
+spotify_credentials.json
+
+# Go binary / build artifacts
+/dj-yosof
+*.test
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,5 +1,14 @@
+# Discord bot token.
 discord_token: test
-guild_ids: [test]
-opus_location: /libopus.dylib
-spotify_user: test
-spotify_pass: test
+
+# Guilds (servers) where the slash commands are registered.
+guild_ids: ["123456789012345678"]
+
+# Where the cached Spotify credentials are stored. On first run an interactive
+# OAuth2 login link is printed to the console; after you authorize, the
+# resulting credentials are written here and reused on subsequent runs.
+spotify_credentials_file: spotify_credentials.json
+
+# Local port for the OAuth2 redirect during first-time Spotify login.
+# 0 lets the OS pick a free port.
+spotify_oauth_callback_port: 0

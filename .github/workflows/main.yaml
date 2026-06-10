@@ -3,20 +3,18 @@ on:
   pull_request:
     branches: [ main ]
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          python-version: '3.13.9'
-      - name: Install pipenv
-        run: python -m pip install pipenv
-      - name: Install dependencies
-        run: python -m pipenv install --dev
-      - name: Run ruff
-        run: pipenv run ruff check djyosof/
-      - name: Run pylint
-        run: pipenv run pylint --fail-under=8 djyosof/
-      #- name: Run mypy # disabled because way too many failures atm
-        #run: pipenv run mypy djyosof/
+          go-version: '1.26'
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libopus-dev ffmpeg
+      - name: Check formatting
+        run: test -z "$(gofmt -l .)"
+      - name: Vet
+        run: go vet ./...
+      - name: Build
+        run: go build ./...
