@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
+	"sync"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -36,11 +38,11 @@ const spotifyBitrate = 320
 // supports OAuth2: on first run an interactive browser login is performed and
 // the resulting credentials are cached in the credentials file for reuse.
 type SpotifySource struct {
-	log         librespot.Logger
-	sess        *session.Session
-	player      *splayer.Player
-	httpClient  *http.Client
-	countryCode *string
+	sess         *session.Session
+	player       *splayer.Player
+	httpClient   *http.Client
+	countryCode  *string
+	countryReady chan struct{}
 }
 
 // spotifyCredentials is the JSON persisted to the credentials cache file.
@@ -112,27 +114,31 @@ func NewSpotifySource(ctx context.Context, credFile string, callbackPort int) (*
 	}
 
 	s := &SpotifySource{
-		log:         logger,
-		sess:        sess,
-		player:      pl,
-		httpClient:  httpClient,
-		countryCode: countryCode,
+		sess:         sess,
+		player:       pl,
+		httpClient:   httpClient,
+		countryCode:  countryCode,
+		countryReady: make(chan struct{}),
 	}
 
-	// Start receiving the country-code packet (also starts the AP recv loop) and
-	// wait briefly for it so the first stream isn't rejected as restricted.
+	// Start receiving the country-code packet (this also starts the AP receive
+	// loop) and wait briefly for it so the first stream isn't rejected as
+	// restricted. We proceed the instant it arrives rather than polling.
 	go s.receiveCountryCode()
-	for i := 0; i < 100 && *countryCode == ""; i++ {
-		time.Sleep(50 * time.Millisecond)
+	select {
+	case <-s.countryReady:
+	case <-time.After(5 * time.Second):
 	}
 
 	return s, nil
 }
 
 func (s *SpotifySource) receiveCountryCode() {
+	var once sync.Once
 	for pkt := range s.sess.Accesspoint().Receive(ap.PacketTypeCountryCode) {
 		if pkt.Type == ap.PacketTypeCountryCode {
 			*s.countryCode = string(pkt.Payload)
+			once.Do(func() { close(s.countryReady) })
 		}
 	}
 }
@@ -162,7 +168,7 @@ func (s *SpotifySource) Play(ctx context.Context, track audio.PlayableAudio, vc 
 
 	// go-librespot decodes to 44100Hz stereo float32 PCM; tell ffmpeg the raw
 	// input format so it can resample to Discord's 48kHz.
-	inputArgs := []string{"-f", "s16le", "-ar", fmt.Sprintf("%d", splayer.SampleRate), "-ac", fmt.Sprintf("%d", splayer.Channels)}
+	inputArgs := []string{"-f", "s16le", "-ar", strconv.Itoa(splayer.SampleRate), "-ac", strconv.Itoa(splayer.Channels)}
 	return voice.Stream(ctx, vc, inputArgs, newPCMReader(stream.Source))
 }
 

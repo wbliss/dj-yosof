@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -186,8 +187,7 @@ func parseLengthText(s string) time.Duration {
 	parts := strings.Split(strings.TrimSpace(s), ":")
 	var total time.Duration
 	for _, p := range parts {
-		var n int
-		fmt.Sscanf(p, "%d", &n)
+		n, _ := strconv.Atoi(strings.TrimSpace(p))
 		total = total*60 + time.Duration(n)
 	}
 	return total * time.Second

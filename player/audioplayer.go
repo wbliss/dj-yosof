@@ -196,7 +196,7 @@ func (ap *AudioPlayer) updateNowPlaying(track audio.PlayableAudio, textChannel s
 	}
 
 	embed := track.Embed()
-	if md := ap.queueMarkdown(); md != "" {
+	if md := ap.QueueText(false, false); md != "" {
 		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{Name: "Up Next", Value: md})
 	}
 
@@ -217,17 +217,27 @@ func (ap *AudioPlayer) sendError(textChannel, msg string) {
 	_, _ = ap.mgr.session.ChannelMessageSend(textChannel, msg)
 }
 
-// queueMarkdown renders the upcoming queue, mirroring _get_queue_markdown.
-func (ap *AudioPlayer) queueMarkdown() string {
+// QueueText renders the queue for display, mirroring the Python
+// _get_queue_markdown. withNowPlaying prefixes the current track; withTotals
+// appends an "N out of M tracks" footer.
+func (ap *AudioPlayer) QueueText(withNowPlaying, withTotals bool) string {
 	ap.mu.Lock()
-	q := ap.queue
+	defer ap.mu.Unlock()
+
 	var b strings.Builder
-	for i, t := range q {
+	if withNowPlaying && ap.nowPlaying != nil {
+		fmt.Fprintf(&b, "**NOW PLAYING:** %s\n", ap.nowPlaying.DisplayName())
+	}
+	shown := 0
+	for i, t := range ap.queue {
 		if i >= queuePreviewLen {
 			break
 		}
 		fmt.Fprintf(&b, "%d. %s\n", i+1, t.DisplayName())
+		shown++
 	}
-	ap.mu.Unlock()
+	if withTotals {
+		fmt.Fprintf(&b, "\n%d out of %d tracks", shown, len(ap.queue))
+	}
 	return b.String()
 }

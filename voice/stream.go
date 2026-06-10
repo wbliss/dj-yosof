@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"strconv"
 
 	"github.com/bwmarrin/discordgo"
 	"layeh.com/gopus"
@@ -31,8 +32,8 @@ func Stream(ctx context.Context, vc *discordgo.VoiceConnection, inputArgs []stri
 	args = append(args,
 		"-i", "pipe:0",
 		"-f", "s16le",
-		"-ar", fmt.Sprintf("%d", sampleRate),
-		"-ac", fmt.Sprintf("%d", channels),
+		"-ar", strconv.Itoa(sampleRate),
+		"-ac", strconv.Itoa(channels),
 		"pipe:1",
 	)
 

@@ -3,6 +3,7 @@ package views
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -51,7 +52,8 @@ func ParseComponentID(customID string) (sessionKey string, index int, ok bool) {
 	if len(parts) != 3 || parts[0] != ComponentPrefix {
 		return "", 0, false
 	}
-	if _, err := fmt.Sscanf(parts[2], "%d", &index); err != nil {
+	index, err := strconv.Atoi(parts[2])
+	if err != nil {
 		return "", 0, false
 	}
 	return parts[1], index, true

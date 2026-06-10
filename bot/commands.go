@@ -145,25 +145,13 @@ func (b *Bot) enqueueAll(s *discordgo.Session, i *discordgo.InteractionCreate, t
 }
 
 func (b *Bot) cmdQueue(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	nowPlaying, queue := b.mgr.Player(i.GuildID).Snapshot()
+	ap := b.mgr.Player(i.GuildID)
+	nowPlaying, queue := ap.Snapshot()
 	if nowPlaying == nil && len(queue) == 0 {
 		respond(s, i, "The queue is empty")
 		return
 	}
-
-	var b2 string
-	total := len(queue)
-	if nowPlaying != nil {
-		b2 += fmt.Sprintf("**NOW PLAYING:** %s\n", nowPlaying.DisplayName())
-	}
-	for idx, t := range queue {
-		if idx >= 9 {
-			break
-		}
-		b2 += fmt.Sprintf("%d. %s\n", idx+1, t.DisplayName())
-	}
-	b2 += fmt.Sprintf("\n%d out of %d tracks", min(total, 9), total)
-	respond(s, i, b2)
+	respond(s, i, ap.QueueText(true, true))
 }
 
 // --- search result cache ---
