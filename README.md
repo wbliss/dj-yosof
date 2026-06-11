@@ -48,8 +48,11 @@ persistent `429 Too Many Requests` errors
 ([go-librespot#282](https://github.com/devgianlu/go-librespot/issues/282)), so
 you must supply your own **Spotify developer app** credentials:
 
-1. Create an app at <https://developer.spotify.com/dashboard> (no redirect URI
-   needed — it uses the Client Credentials flow).
+1. Create an app at <https://developer.spotify.com/dashboard>. The dashboard
+   requires a **Redirect URI** even though the Client Credentials flow never
+   uses one — enter any placeholder, e.g. `http://127.0.0.1:8888/callback`
+   (Spotify requires `127.0.0.1` rather than `localhost`). Tick **Web API**
+   when asked which APIs you'll use.
 2. Put its **Client ID** and **Client Secret** into `spotify_client_id` /
    `spotify_client_secret` in `config.yaml`.
 

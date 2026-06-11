@@ -16,6 +16,8 @@ spotify_oauth_callback_port: 0
 # Spotify developer app credentials, used for /spotify search and
 # track/album/playlist link lookups (the Web API). Create an app at
 # https://developer.spotify.com/dashboard and copy its Client ID and Secret.
+# The dashboard requires a redirect URI even though the Client Credentials flow
+# never uses one; enter any placeholder, e.g. http://127.0.0.1:8888/callback.
 # This is required because Spotify rejects Web API requests made with
 # go-librespot's session token with persistent 429 "Too Many Requests" errors
 # (https://github.com/devgianlu/go-librespot/issues/282). Audio streaming does
