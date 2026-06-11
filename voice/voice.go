@@ -6,6 +6,7 @@ package voice
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/disgoorg/disgo/bot"
@@ -37,7 +38,10 @@ func ConnectOrMove(client *bot.Client, guildID, userID snowflake.ID) (dvoice.Con
 	defer cancel()
 	// Open connects, or moves an existing connection to the new channel.
 	if err := conn.Open(ctx, *vs.ChannelID, false, true); err != nil {
-		return nil, err
+		if errors.Is(err, context.DeadlineExceeded) {
+			return nil, fmt.Errorf("timed out connecting to voice — check the bot has Connect/Speak permissions and the host allows outbound UDP to Discord's voice servers (run with debug: true for details)")
+		}
+		return nil, fmt.Errorf("connecting to voice: %w", err)
 	}
 	return conn, nil
 }

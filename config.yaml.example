@@ -25,3 +25,7 @@ spotify_oauth_callback_port: 0
 # session token (search/links will likely return 429).
 spotify_client_id: ""
 spotify_client_secret: ""
+
+# Verbose logging for the Discord gateway/voice and DAVE handshake. Turn this on
+# to diagnose voice connection problems (e.g. "timed out connecting to voice").
+debug: false

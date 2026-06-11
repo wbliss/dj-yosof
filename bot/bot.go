@@ -6,6 +6,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
+	"os"
 	"sync"
 
 	"github.com/disgoorg/disgo"
@@ -38,7 +40,14 @@ func New(cfg *config.Config, spotify, youtube player.Source) (*Bot, error) {
 		searches: make(map[string][]audio.PlayableAudio),
 	}
 
+	level := slog.LevelInfo
+	if cfg.Debug {
+		level = slog.LevelDebug
+	}
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level}))
+
 	client, err := disgo.New(cfg.DiscordToken,
+		dbot.WithLogger(logger),
 		dbot.WithGatewayConfigOpts(
 			gateway.WithIntents(
 				gateway.IntentGuilds,
@@ -54,6 +63,7 @@ func New(cfg *config.Config, spotify, youtube player.Source) (*Bot, error) {
 		// 2026-03) using the official libdave binding.
 		dbot.WithVoiceManagerConfigOpts(
 			dvoice.WithDaveSessionCreateFunc(golibdave.NewSession),
+			dvoice.WithDaveSessionLogger(logger),
 		),
 		dbot.WithEventListenerFunc(b.onReady),
 		dbot.WithEventListenerFunc(b.onSlash),

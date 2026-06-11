@@ -30,6 +30,9 @@ type Config struct {
 	// the session token.
 	SpotifyClientID     string `yaml:"spotify_client_id"`
 	SpotifyClientSecret string `yaml:"spotify_client_secret"`
+	// Debug enables verbose disgo gateway/voice and DAVE logging, useful for
+	// diagnosing voice connection problems.
+	Debug bool `yaml:"debug"`
 }
 
 // Load reads and parses the YAML config at path.
