@@ -14,17 +14,26 @@ downloads are required at build time — only the system C libraries below.
 - A **C compiler** (`gcc`/`clang`) and **pkg-config** — for cgo.
 - **libogg** and **libvorbis** development headers — `vorbis-go` links them via
   `pkg-config: ogg vorbis vorbisenc`.
+- **libFLAC** development headers — go-librespot's `player` package links it
+  (`pkg-config: flac`) even though dj-yosof only streams Vorbis.
+- **ALSA** development headers on **Linux** (`pkg-config: alsa`) — same reason
+  (go-librespot's audio `output` backend). On macOS this is CoreAudio, built in.
 - **libopus** development headers — **only on non-amd64** (e.g. arm64). On
   amd64/386, `gopus` compiles its own bundled libopus and does not need a
   system copy.
 - **ffmpeg** on `PATH` — used at runtime to transcode audio.
+
+> Note: libFLAC and ALSA/CoreAudio are required only because go-librespot's
+> `player` package links them unconditionally; dj-yosof does not use FLAC
+> playback or the local audio output backends.
 
 ## Ubuntu / Debian (amd64)
 
 ```sh
 # System dependencies (libopus NOT needed on amd64 — gopus bundles it)
 sudo apt-get update
-sudo apt-get install -y build-essential pkg-config libogg-dev libvorbis-dev ffmpeg git
+sudo apt-get install -y build-essential pkg-config ffmpeg git \
+  libogg-dev libvorbis-dev libflac-dev libasound2-dev
 
 # Go 1.26 (apt's Go is too old; go.mod requires 1.26)
 curl -fsSL https://go.dev/dl/go1.26.0.linux-amd64.tar.gz -o /tmp/go.tgz
@@ -54,7 +63,7 @@ curl -fsSL https://go.dev/dl/go1.26.0.linux-arm64.tar.gz -o /tmp/go.tgz
 ## macOS
 
 ```sh
-brew install go ffmpeg pkg-config libogg libvorbis opus
+brew install go ffmpeg pkg-config libogg libvorbis flac opus
 go build -o dj-yosof .
 ```
 
