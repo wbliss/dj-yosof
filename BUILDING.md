@@ -1,15 +1,15 @@
 # Building dj-yosof
 
 dj-yosof is a **cgo** program: it links/compiles C code for the audio path
-(Opus via `layeh.com/gopus`, Ogg/Vorbis via `github.com/xlab/vorbis-go`) and for
-Discord's **DAVE** end-to-end-encrypted voice (via `github.com/disgoorg/godave`,
-which links Discord's C++ `libdave`). So a build host needs a C/C++ toolchain
-and a few system libraries in addition to Go.
+(Opus via `layeh.com/gopus`, Ogg/Vorbis via `github.com/xlab/vorbis-go`, plus
+go-librespot's FLAC/output backends). So a build host needs a C toolchain and a
+few `-dev` libraries in addition to Go.
 
-> Discord requires the DAVE protocol on all voice connections (enforced since
-> March 2026). The bot uses the [disgo](https://github.com/disgoorg/disgo)
-> library with `godave`/`libdave` to satisfy it; without `libdave` the build
-> fails (`Package dave was not found in the pkg-config search path`).
+> Discord requires the DAVE end-to-end-encryption protocol on all voice
+> connections (enforced since March 2026). The bot uses
+> [disgo](https://github.com/disgoorg/disgo) with the **pure-Go**
+> [dave-go](https://github.com/thomas-vilte/dave-go) DAVE implementation, so
+> **no extra native library is needed** for E2EE voice (no libdave/C++).
 
 Dependencies are **vendored** (committed under `vendor/`), so no module
 downloads are required at build time — only the system libraries below.
@@ -28,9 +28,6 @@ downloads are required at build time — only the system libraries below.
 - **libopus** development headers — **only on non-amd64** (e.g. arm64). On
   amd64/386, `gopus` compiles its own bundled libopus and does not need a
   system copy.
-- **libdave** — Discord's DAVE E2EE library (`pkg-config: dave`). Installed via
-  godave's helper script (see below); it drops `libdave.{so,dylib}`, `dave.h`,
-  and `dave.pc` under `~/.local`.
 - **ffmpeg** on `PATH` — used at runtime to transcode audio.
 
 > Note: libFLAC and ALSA/CoreAudio are required only because go-librespot's
@@ -49,12 +46,6 @@ sudo apt-get install -y build-essential pkg-config ffmpeg git \
 curl -fsSL https://go.dev/dl/go1.26.0.linux-amd64.tar.gz -o /tmp/go.tgz
 sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf /tmp/go.tgz
 export PATH=$PATH:/usr/local/go/bin   # add to ~/.profile to persist
-
-# libdave (DAVE E2EE) — downloads a prebuilt lib into ~/.local
-curl -fsSL https://raw.githubusercontent.com/disgoorg/godave/v0.1.0/scripts/libdave_install.sh -o /tmp/libdave_install.sh
-NON_INTERACTIVE=1 sh /tmp/libdave_install.sh v1.1.0
-export PKG_CONFIG_PATH="$HOME/.local/lib/pkgconfig:$PKG_CONFIG_PATH"
-export LD_LIBRARY_PATH="$HOME/.local/lib:$LD_LIBRARY_PATH"   # add both to ~/.profile
 
 # Clone and build (vendored deps — no network needed for modules)
 git clone https://github.com/GusPrice/dj-yosof.git
@@ -80,12 +71,6 @@ curl -fsSL https://go.dev/dl/go1.26.0.linux-arm64.tar.gz -o /tmp/go.tgz
 
 ```sh
 brew install go ffmpeg pkg-config libogg libvorbis flac opus
-
-# libdave (DAVE E2EE)
-curl -fsSL https://raw.githubusercontent.com/disgoorg/godave/v0.1.0/scripts/libdave_install.sh -o /tmp/libdave_install.sh
-NON_INTERACTIVE=1 sh /tmp/libdave_install.sh v1.1.0
-export PKG_CONFIG_PATH="$HOME/.local/lib/pkgconfig:$PKG_CONFIG_PATH"
-
 go build -o dj-yosof .
 ```
 
@@ -93,10 +78,6 @@ go build -o dj-yosof .
 
 - **CGO must be enabled.** It is by default once a C compiler is present. If you
   have globally set `CGO_ENABLED=0`, build with `CGO_ENABLED=1 go build ...`.
-- **libdave at runtime.** The binary dynamically links `libdave`. The install
-  script bakes an rpath to `~/.local/lib`, so it loads automatically on the same
-  machine. If you move the binary or installed `libdave` elsewhere, set
-  `LD_LIBRARY_PATH` (Linux) / `DYLD_LIBRARY_PATH` (macOS) to its directory.
 - **Headless Spotify login.** On first run the bot prints a Spotify OAuth2 URL.
   On a server with no browser, open that URL on another machine, authorize, and
   copy the generated credentials file (`spotify_credentials.json` by default) to

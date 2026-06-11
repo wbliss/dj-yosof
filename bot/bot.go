@@ -16,7 +16,7 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
 	dvoice "github.com/disgoorg/disgo/voice"
-	"github.com/disgoorg/godave/golibdave"
+	davesession "github.com/thomas-vilte/dave-go/session"
 
 	"github.com/GusPrice/dj-yosof/audio"
 	"github.com/GusPrice/dj-yosof/config"
@@ -60,9 +60,9 @@ func New(cfg *config.Config, spotify, youtube player.Source) (*Bot, error) {
 			cache.WithCaches(cache.FlagGuilds|cache.FlagVoiceStates|cache.FlagChannels),
 		),
 		// Enable Discord's DAVE end-to-end encryption for voice (required since
-		// 2026-03) using the official libdave binding.
+		// 2026-03). Uses the pure-Go dave-go implementation (no C++ libdave).
 		dbot.WithVoiceManagerConfigOpts(
-			dvoice.WithDaveSessionCreateFunc(golibdave.NewSession),
+			dvoice.WithDaveSessionCreateFunc(davesession.New),
 			dvoice.WithDaveSessionLogger(logger),
 		),
 		dbot.WithEventListenerFunc(b.onReady),

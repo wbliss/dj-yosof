@@ -82,12 +82,6 @@ github.com/disgoorg/disgo/voice
 # github.com/disgoorg/godave v0.1.0
 ## explicit; go 1.24.0
 github.com/disgoorg/godave
-# github.com/disgoorg/godave/golibdave v0.1.0
-## explicit; go 1.24.0
-github.com/disgoorg/godave/golibdave
-# github.com/disgoorg/godave/libdave v0.1.0
-## explicit; go 1.24.0
-github.com/disgoorg/godave/libdave
 # github.com/disgoorg/json/v2 v2.0.0
 ## explicit; go 1.24
 github.com/disgoorg/json/v2
@@ -159,10 +153,31 @@ github.com/stretchr/objx
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
 github.com/stretchr/testify/mock
+# github.com/thomas-vilte/dave-go v0.2.2
+## explicit; go 1.26.0
+github.com/thomas-vilte/dave-go/codecs
+github.com/thomas-vilte/dave-go/frame
+github.com/thomas-vilte/dave-go/mediakeys
+github.com/thomas-vilte/dave-go/session
+# github.com/thomas-vilte/mls-go v1.3.0
+## explicit; go 1.26.0
+github.com/thomas-vilte/mls-go
+github.com/thomas-vilte/mls-go/ciphersuite
+github.com/thomas-vilte/mls-go/credentials
+github.com/thomas-vilte/mls-go/extensions
+github.com/thomas-vilte/mls-go/framing
+github.com/thomas-vilte/mls-go/group
+github.com/thomas-vilte/mls-go/internal/tls
+github.com/thomas-vilte/mls-go/keypackages
+github.com/thomas-vilte/mls-go/schedule
+github.com/thomas-vilte/mls-go/secrettree
+github.com/thomas-vilte/mls-go/storage/file
+github.com/thomas-vilte/mls-go/storage/memory
+github.com/thomas-vilte/mls-go/treesync
 # github.com/xlab/vorbis-go v0.0.0-20210911202351-b5b85f1ec645
 ## explicit
 github.com/xlab/vorbis-go/vorbis
-# golang.org/x/crypto v0.49.0
+# golang.org/x/crypto v0.50.0
 ## explicit; go 1.25.0
 golang.org/x/crypto/chacha20
 golang.org/x/crypto/chacha20poly1305
@@ -183,12 +198,12 @@ golang.org/x/net/proxy
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/spotify
-# golang.org/x/sys v0.42.0
+# golang.org/x/sys v0.43.0
 ## explicit; go 1.25.0
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.35.0
+# golang.org/x/text v0.36.0
 ## explicit; go 1.25.0
 golang.org/x/text/cases
 golang.org/x/text/collate
