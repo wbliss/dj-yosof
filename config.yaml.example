@@ -12,3 +12,14 @@ spotify_credentials_file: spotify_credentials.json
 # Local port for the OAuth2 redirect during first-time Spotify login.
 # 0 lets the OS pick a free port.
 spotify_oauth_callback_port: 0
+
+# Spotify developer app credentials, used for /spotify search and
+# track/album/playlist link lookups (the Web API). Create an app at
+# https://developer.spotify.com/dashboard and copy its Client ID and Secret.
+# This is required because Spotify rejects Web API requests made with
+# go-librespot's session token with persistent 429 "Too Many Requests" errors
+# (https://github.com/devgianlu/go-librespot/issues/282). Audio streaming does
+# not use the Web API and works without these. Leave empty to fall back to the
+# session token (search/links will likely return 429).
+spotify_client_id: ""
+spotify_client_secret: ""

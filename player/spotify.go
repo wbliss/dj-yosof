@@ -45,6 +45,13 @@ type SpotifySource struct {
 	httpClient   *http.Client
 	countryCode  *string
 	countryReady chan struct{}
+
+	// creds, when non-nil, is used to authenticate Web API (search/metadata)
+	// requests with the user's own Spotify app instead of the go-librespot
+	// session token. Spotify rejects Web API requests made with the desktop
+	// client-ID OAuth token with persistent 429s (devgianlu/go-librespot#282),
+	// so a developer client-credentials token is the reliable path.
+	creds *clientCredentials
 }
 
 // spotifyCredentials is the JSON persisted to the credentials cache file.
@@ -56,8 +63,11 @@ type spotifyCredentials struct {
 
 // NewSpotifySource authenticates with Spotify and prepares the player. credFile
 // is the credentials cache path; callbackPort is the OAuth2 redirect port used
-// only on first-time interactive login.
-func NewSpotifySource(ctx context.Context, credFile string, callbackPort int) (*SpotifySource, error) {
+// only on first-time interactive login. clientID/clientSecret are an optional
+// Spotify developer app's credentials used for Web API search/metadata; when
+// empty, the go-librespot session token is used instead (which Spotify may
+// rate-limit — see devgianlu/go-librespot#282).
+func NewSpotifySource(ctx context.Context, credFile string, callbackPort int, clientID, clientSecret string) (*SpotifySource, error) {
 	logger := newSpotifyLogger()
 	httpClient := &http.Client{Timeout: 30 * time.Second}
 
@@ -121,6 +131,12 @@ func NewSpotifySource(ctx context.Context, credFile string, callbackPort int) (*
 		httpClient:   httpClient,
 		countryCode:  countryCode,
 		countryReady: make(chan struct{}),
+	}
+
+	if clientID != "" && clientSecret != "" {
+		s.creds = &clientCredentials{id: clientID, secret: clientSecret, client: httpClient}
+	} else {
+		logger.Warnf("no spotify_client_id/secret configured; Web API search and link lookups use the session token, which Spotify may reject with 429 (see go-librespot#282)")
 	}
 
 	// Start receiving the country-code packet (this also starts the AP receive
@@ -265,7 +281,7 @@ const (
 // spotifyMaxRetryWait, it returns a clear "try again" error instead of blocking.
 func (s *SpotifySource) webAPI(ctx context.Context, path string, query url.Values, out any) error {
 	for attempt := 0; ; attempt++ {
-		resp, err := s.sess.WebApi(ctx, http.MethodGet, path, query, nil, nil)
+		resp, err := s.doWebAPI(ctx, path, query)
 		if err != nil {
 			return fmt.Errorf("spotify web api %s: %w", path, err)
 		}
@@ -300,6 +316,31 @@ func (s *SpotifySource) webAPI(ctx context.Context, path string, query url.Value
 	}
 }
 
+// doWebAPI issues a single Web API GET. When client credentials are configured
+// it calls api.spotify.com directly with the developer app token; otherwise it
+// falls back to the go-librespot session passthrough.
+func (s *SpotifySource) doWebAPI(ctx context.Context, path string, query url.Values) (*http.Response, error) {
+	if s.creds == nil {
+		return s.sess.WebApi(ctx, http.MethodGet, path, query, nil, nil)
+	}
+
+	token, err := s.creds.accessToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	u := "https://api.spotify.com" + path
+	if len(query) > 0 {
+		u += "?" + query.Encode()
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	return s.httpClient.Do(req)
+}
+
 // retryAfter returns how long to wait before retrying a 429, taken from the
 // Retry-After header (delta-seconds), defaulting to 1s when absent/unparseable.
 func retryAfter(h http.Header) time.Duration {
@@ -309,6 +350,69 @@ func retryAfter(h http.Header) time.Duration {
 		}
 	}
 	return time.Second
+}
+
+// clientCredentials fetches and caches a Spotify Web API token using the
+// OAuth2 Client Credentials flow with a developer app's id/secret. Such a token
+// can read the public catalog (search, tracks, albums, public playlists) and is
+// rate-limited against the user's own app rather than the shared desktop client
+// ID, avoiding the persistent 429s in go-librespot#282.
+type clientCredentials struct {
+	id     string
+	secret string
+	client *http.Client
+
+	mu     sync.Mutex
+	token  string
+	expiry time.Time
+}
+
+func (c *clientCredentials) accessToken(ctx context.Context) (string, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.token != "" && time.Now().Before(c.expiry) {
+		return c.token, nil
+	}
+
+	form := url.Values{"grant_type": {"client_credentials"}}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
+		"https://accounts.spotify.com/api/token", strings.NewReader(form.Encode()))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(c.id+":"+c.secret)))
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("requesting spotify token: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("reading spotify token response: %w", err)
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("spotify token request failed: status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var tok struct {
+		AccessToken string `json:"access_token"`
+		ExpiresIn   int    `json:"expires_in"`
+	}
+	if err := json.Unmarshal(body, &tok); err != nil {
+		return "", fmt.Errorf("decoding spotify token: %w", err)
+	}
+	if tok.AccessToken == "" {
+		return "", fmt.Errorf("spotify token response had no access_token")
+	}
+
+	c.token = tok.AccessToken
+	// Refresh a minute early to avoid using a token that expires mid-request.
+	c.expiry = time.Now().Add(time.Duration(tok.ExpiresIn)*time.Second - time.Minute)
+	return c.token, nil
 }
 
 // --- Web API JSON shapes ---

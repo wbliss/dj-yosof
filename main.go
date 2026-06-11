@@ -30,7 +30,7 @@ func main() {
 	// bot still runs with YouTube. On first run an interactive OAuth2 login link
 	// is printed to the console.
 	var spotify player.Source
-	if sp, err := player.NewSpotifySource(ctx, cfg.SpotifyCredentialsFile, cfg.SpotifyOAuthCallbackPort); err != nil {
+	if sp, err := player.NewSpotifySource(ctx, cfg.SpotifyCredentialsFile, cfg.SpotifyOAuthCallbackPort, cfg.SpotifyClientID, cfg.SpotifyClientSecret); err != nil {
 		log.Printf("spotify disabled: %v", err)
 	} else {
 		spotify = sp

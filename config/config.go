@@ -22,6 +22,14 @@ type Config struct {
 	// SpotifyOAuthCallbackPort is the local port used for the OAuth2 redirect
 	// during the first-time interactive Spotify login. 0 lets the OS choose.
 	SpotifyOAuthCallbackPort int `yaml:"spotify_oauth_callback_port"`
+	// SpotifyClientID and SpotifyClientSecret are a Spotify developer app's
+	// credentials, used to authenticate Web API search/metadata requests via the
+	// Client Credentials flow. Spotify rejects Web API requests made with the
+	// go-librespot session (desktop client-ID) token with persistent 429s
+	// (go-librespot#282); set these to avoid that. Leave empty to fall back to
+	// the session token.
+	SpotifyClientID     string `yaml:"spotify_client_id"`
+	SpotifyClientSecret string `yaml:"spotify_client_secret"`
 }
 
 // Load reads and parses the YAML config at path.

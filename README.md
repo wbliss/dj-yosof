@@ -40,6 +40,23 @@ log in, and authorize. The resulting credentials are cached in
 once. (If you run headless, complete the login on a machine with a browser and
 copy the credentials file over.)
 
+### Spotify search & links (developer app)
+
+`/spotify` **search** and **track/album/playlist links** use Spotify's Web API.
+Spotify now rejects Web API requests made with go-librespot's session token with
+persistent `429 Too Many Requests` errors
+([go-librespot#282](https://github.com/devgianlu/go-librespot/issues/282)), so
+you must supply your own **Spotify developer app** credentials:
+
+1. Create an app at <https://developer.spotify.com/dashboard> (no redirect URI
+   needed — it uses the Client Credentials flow).
+2. Put its **Client ID** and **Client Secret** into `spotify_client_id` /
+   `spotify_client_secret` in `config.yaml`.
+
+Audio **streaming** does not use the Web API, so it works without this. If you
+leave the credentials empty, search/links fall back to the session token and
+will likely hit 429.
+
 ## Commands
 
 | Command | Description |
