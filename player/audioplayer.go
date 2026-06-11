@@ -9,7 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/snowflake/v2"
 
 	"github.com/GusPrice/dj-yosof/audio"
 	"github.com/GusPrice/dj-yosof/voice"
@@ -26,20 +27,20 @@ const queuePreviewLen = 10
 // djyosof/players/audio_player.py.
 type AudioPlayer struct {
 	mgr     *Manager
-	guildID string
+	guildID snowflake.ID
 
 	mu              sync.Mutex
 	queue           []audio.PlayableAudio
 	nowPlaying      audio.PlayableAudio
 	playing         bool
-	textChannelID   string
-	nowPlayingMsgID string
+	textChannelID   snowflake.ID
+	nowPlayingMsgID snowflake.ID
 	cancel          context.CancelFunc
 
 	notify chan struct{}
 }
 
-func newAudioPlayer(mgr *Manager, guildID string) *AudioPlayer {
+func newAudioPlayer(mgr *Manager, guildID snowflake.ID) *AudioPlayer {
 	return &AudioPlayer{
 		mgr:     mgr,
 		guildID: guildID,
@@ -56,7 +57,7 @@ func (ap *AudioPlayer) signal() {
 
 // EnqueueAndPlay adds a track and starts the play loop if it is not running.
 // Ports AudioPlayer.enqueue_and_play.
-func (ap *AudioPlayer) EnqueueAndPlay(track audio.PlayableAudio, textChannelID string) {
+func (ap *AudioPlayer) EnqueueAndPlay(track audio.PlayableAudio, textChannelID snowflake.ID) {
 	ap.mu.Lock()
 	ap.textChannelID = textChannelID
 	ap.queue = append(ap.queue, track)
@@ -124,7 +125,7 @@ func (ap *AudioPlayer) playLoop() {
 	for {
 		track, ok := ap.waitForTrack()
 		if !ok {
-			_ = voice.Leave(ap.mgr.session, ap.guildID)
+			voice.Leave(ap.mgr.client, ap.guildID)
 			return
 		}
 
@@ -138,8 +139,8 @@ func (ap *AudioPlayer) playLoop() {
 		ap.updateNowPlaying(track, textChannel)
 		log.Printf("Playing %s", track.DisplayName())
 
-		vc := ap.mgr.session.VoiceConnections[ap.guildID]
-		if vc == nil {
+		conn := ap.mgr.client.VoiceManager.GetConn(ap.guildID)
+		if conn == nil {
 			cancel()
 			return
 		}
@@ -147,7 +148,7 @@ func (ap *AudioPlayer) playLoop() {
 		src := ap.mgr.Source(track.Type())
 		if src == nil {
 			ap.sendError(textChannel, fmt.Sprintf("No source registered for %s", track.Type()))
-		} else if err := src.Play(ctx, track, vc); err != nil && !errors.Is(err, context.Canceled) {
+		} else if err := src.Play(ctx, track, conn); err != nil && !errors.Is(err, context.Canceled) {
 			log.Printf("error playing %s: %v", track.DisplayName(), err)
 			ap.sendError(textChannel, fmt.Sprintf("Error playing %s", track.DisplayName()))
 		}
@@ -181,26 +182,26 @@ func (ap *AudioPlayer) waitForTrack() (audio.PlayableAudio, bool) {
 	}
 }
 
-func (ap *AudioPlayer) updateNowPlaying(track audio.PlayableAudio, textChannel string) {
-	if textChannel == "" {
+func (ap *AudioPlayer) updateNowPlaying(track audio.PlayableAudio, textChannel snowflake.ID) {
+	if textChannel == 0 {
 		return
 	}
-	s := ap.mgr.session
+	rest := ap.mgr.client.Rest
 
 	ap.mu.Lock()
 	prev := ap.nowPlayingMsgID
-	ap.nowPlayingMsgID = ""
+	ap.nowPlayingMsgID = 0
 	ap.mu.Unlock()
-	if prev != "" {
-		_ = s.ChannelMessageDelete(textChannel, prev)
+	if prev != 0 {
+		_ = rest.DeleteMessage(textChannel, prev)
 	}
 
 	embed := track.Embed()
 	if md := ap.QueueText(false, false); md != "" {
-		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{Name: "Up Next", Value: md})
+		embed = embed.AddField("Up Next", md, false)
 	}
 
-	msg, err := s.ChannelMessageSendEmbed(textChannel, embed)
+	msg, err := rest.CreateMessage(textChannel, discord.NewMessageCreate().WithEmbeds(embed))
 	if err != nil {
 		log.Printf("failed sending now-playing message: %v", err)
 		return
@@ -210,11 +211,11 @@ func (ap *AudioPlayer) updateNowPlaying(track audio.PlayableAudio, textChannel s
 	ap.mu.Unlock()
 }
 
-func (ap *AudioPlayer) sendError(textChannel, msg string) {
-	if textChannel == "" {
+func (ap *AudioPlayer) sendError(textChannel snowflake.ID, msg string) {
+	if textChannel == 0 {
 		return
 	}
-	_, _ = ap.mgr.session.ChannelMessageSend(textChannel, msg)
+	_, _ = ap.mgr.client.Rest.CreateMessage(textChannel, discord.NewMessageCreate().WithContent(msg))
 }
 
 // QueueText renders the queue for display, mirroring the Python

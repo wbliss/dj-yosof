@@ -6,7 +6,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/disgoorg/disgo/bot"
+	dvoice "github.com/disgoorg/disgo/voice"
+	"github.com/disgoorg/snowflake/v2"
 
 	"github.com/GusPrice/dj-yosof/audio"
 )
@@ -20,27 +22,27 @@ type Source interface {
 	OpenLink(ctx context.Context, link string) ([]audio.PlayableAudio, error)
 	// Play streams the track to the voice connection, blocking until the track
 	// finishes or ctx is cancelled (used for skip/stop).
-	Play(ctx context.Context, track audio.PlayableAudio, vc *discordgo.VoiceConnection) error
+	Play(ctx context.Context, track audio.PlayableAudio, conn dvoice.Conn) error
 }
 
 // Manager owns the registered sources and the per-guild players. It is the
 // rough equivalent of the cog/bot wiring that held the Python `players` and
 // `audio_players` maps.
 type Manager struct {
-	session *discordgo.Session
+	client *bot.Client
 
 	sources map[audio.Type]Source
 
 	mu      sync.Mutex
-	players map[string]*AudioPlayer
+	players map[snowflake.ID]*AudioPlayer
 }
 
-// NewManager creates a Manager bound to a Discord session.
-func NewManager(session *discordgo.Session) *Manager {
+// NewManager creates a Manager bound to a disgo client.
+func NewManager(client *bot.Client) *Manager {
 	return &Manager{
-		session: session,
+		client:  client,
 		sources: make(map[audio.Type]Source),
-		players: make(map[string]*AudioPlayer),
+		players: make(map[snowflake.ID]*AudioPlayer),
 	}
 }
 
@@ -56,7 +58,7 @@ func (m *Manager) Source(t audio.Type) Source {
 
 // Player returns the AudioPlayer for a guild, lazily creating it. This mirrors
 // the Python defaultdict[guild_id -> AudioPlayer].
-func (m *Manager) Player(guildID string) *AudioPlayer {
+func (m *Manager) Player(guildID snowflake.ID) *AudioPlayer {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	ap, ok := m.players[guildID]

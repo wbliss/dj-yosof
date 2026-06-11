@@ -1,24 +1,31 @@
-// Package bot wires the Discord session to the player, registers slash commands
+// Package bot wires the Discord client to the player, registers slash commands
 // and routes interactions. It replaces the py-cord bot + cogs in the original.
 package bot
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"sync"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/disgoorg/disgo"
+	dbot "github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/disgo/cache"
+	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/disgo/gateway"
+	dvoice "github.com/disgoorg/disgo/voice"
+	"github.com/disgoorg/godave/golibdave"
 
 	"github.com/GusPrice/dj-yosof/audio"
 	"github.com/GusPrice/dj-yosof/config"
 	"github.com/GusPrice/dj-yosof/player"
 )
 
-// Bot holds the Discord session and shared state.
+// Bot holds the Discord client and shared state.
 type Bot struct {
-	session *discordgo.Session
-	cfg     *config.Config
-	mgr     *player.Manager
+	client *dbot.Client
+	cfg    *config.Config
+	mgr    *player.Manager
 
 	searchMu sync.Mutex
 	searches map[string][]audio.PlayableAudio
@@ -26,16 +33,37 @@ type Bot struct {
 
 // New constructs a Bot, registering the given sources with the player manager.
 func New(cfg *config.Config, spotify, youtube player.Source) (*Bot, error) {
-	session, err := discordgo.New("Bot " + cfg.DiscordToken)
-	if err != nil {
-		return nil, fmt.Errorf("creating discord session: %w", err)
+	b := &Bot{
+		cfg:      cfg,
+		searches: make(map[string][]audio.PlayableAudio),
 	}
-	session.Identify.Intents = discordgo.IntentsGuilds |
-		discordgo.IntentsGuildVoiceStates |
-		discordgo.IntentsGuildMessages |
-		discordgo.IntentsMessageContent
 
-	mgr := player.NewManager(session)
+	client, err := disgo.New(cfg.DiscordToken,
+		dbot.WithGatewayConfigOpts(
+			gateway.WithIntents(
+				gateway.IntentGuilds,
+				gateway.IntentGuildVoiceStates,
+				gateway.IntentGuildMessages,
+				gateway.IntentMessageContent,
+			),
+		),
+		dbot.WithCacheConfigOpts(
+			cache.WithCaches(cache.FlagGuilds|cache.FlagVoiceStates|cache.FlagChannels),
+		),
+		// Enable Discord's DAVE end-to-end encryption for voice (required since
+		// 2026-03) using the official libdave binding.
+		dbot.WithVoiceManagerConfigOpts(
+			dvoice.WithDaveSessionCreateFunc(golibdave.NewSession),
+		),
+		dbot.WithEventListenerFunc(b.onReady),
+		dbot.WithEventListenerFunc(b.onSlash),
+		dbot.WithEventListenerFunc(b.onComponent),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("creating discord client: %w", err)
+	}
+
+	mgr := player.NewManager(client)
 	if spotify != nil {
 		mgr.RegisterSource(audio.TypeSpotify, spotify)
 	}
@@ -43,45 +71,34 @@ func New(cfg *config.Config, spotify, youtube player.Source) (*Bot, error) {
 		mgr.RegisterSource(audio.TypeYoutube, youtube)
 	}
 
-	b := &Bot{
-		session:  session,
-		cfg:      cfg,
-		mgr:      mgr,
-		searches: make(map[string][]audio.PlayableAudio),
-	}
-
-	session.AddHandler(b.onReady)
-	session.AddHandler(b.onInteraction)
+	b.client = client
+	b.mgr = mgr
 	return b, nil
 }
 
 // Open connects to Discord and registers the slash commands in each configured
 // guild.
 func (b *Bot) Open() error {
-	if err := b.session.Open(); err != nil {
-		return fmt.Errorf("opening discord session: %w", err)
+	if err := b.client.OpenGateway(context.Background()); err != nil {
+		return fmt.Errorf("opening gateway: %w", err)
 	}
-	if err := b.registerCommands(); err != nil {
-		return fmt.Errorf("registering commands: %w", err)
-	}
-	return nil
+	return b.registerCommands()
 }
 
 // Close disconnects from Discord.
 func (b *Bot) Close() error {
-	return b.session.Close()
+	b.client.Close(context.Background())
+	return nil
 }
 
-func (b *Bot) onReady(s *discordgo.Session, _ *discordgo.Ready) {
-	log.Printf("Logged in as %s#%s", s.State.User.Username, s.State.User.Discriminator)
+func (b *Bot) onReady(_ *events.Ready) {
+	log.Println("dj-yosof connected to Discord")
 }
 
-// onInteraction routes slash commands and component (button) interactions.
-func (b *Bot) onInteraction(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	switch i.Type {
-	case discordgo.InteractionApplicationCommand:
-		b.handleCommand(s, i)
-	case discordgo.InteractionMessageComponent:
-		b.handleComponent(s, i)
-	}
+func (b *Bot) onSlash(e *events.ApplicationCommandInteractionCreate) {
+	b.handleCommand(e)
+}
+
+func (b *Bot) onComponent(e *events.ComponentInteractionCreate) {
+	b.handleComponent(e)
 }

@@ -3,56 +3,36 @@ package bot
 import (
 	"log"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
 )
 
-// respond sends an immediate text reply to an interaction.
-func respond(s *discordgo.Session, i *discordgo.InteractionCreate, content string) {
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{Content: content},
-	})
-	if err != nil {
+// reply sends an immediate text reply to a slash command.
+func reply(e *events.ApplicationCommandInteractionCreate, content string) {
+	if err := e.CreateMessage(discord.NewMessageCreate().WithContent(content)); err != nil {
 		log.Printf("failed responding to interaction: %v", err)
 	}
 }
 
-// deferResponse acknowledges an interaction so the bot can follow up after a
-// slow operation (search / link resolution).
-func deferResponse(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-	})
-	if err != nil {
-		log.Printf("failed deferring interaction: %v", err)
-	}
-}
-
-// followup sends a text follow-up after a deferred response.
-func followup(s *discordgo.Session, i *discordgo.InteractionCreate, content string) {
-	followupComplex(s, i, &discordgo.WebhookParams{Content: content})
+// followup sends a text follow-up after a deferred slash-command response.
+func followup(e *events.ApplicationCommandInteractionCreate, content string) {
+	followupComplex(e, discord.NewMessageCreate().WithContent(content))
 }
 
 // followupComplex sends a rich follow-up (embeds/components) after a deferred
-// response.
-func followupComplex(s *discordgo.Session, i *discordgo.InteractionCreate, params *discordgo.WebhookParams) {
-	if _, err := s.FollowupMessageCreate(i.Interaction, true, params); err != nil {
+// slash-command response.
+func followupComplex(e *events.ApplicationCommandInteractionCreate, mc discord.MessageCreate) {
+	if _, err := e.Client().Rest.CreateFollowupMessage(e.ApplicationID(), e.Token(), mc); err != nil {
 		log.Printf("failed sending follow-up: %v", err)
 	}
 }
 
-// updateMessage edits the message a component belongs to, replacing its content
-// and clearing its components (used after a search selection).
-func updateMessage(s *discordgo.Session, i *discordgo.InteractionCreate, content string) {
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseUpdateMessage,
-		Data: &discordgo.InteractionResponseData{
-			Content:    content,
-			Embeds:     []*discordgo.MessageEmbed{},
-			Components: []discordgo.MessageComponent{},
-		},
-	})
-	if err != nil {
-		log.Printf("failed updating message: %v", err)
+// editComponent edits the deferred response of a component interaction,
+// replacing the content and clearing the embeds/buttons (used after a search
+// selection).
+func editComponent(e *events.ComponentInteractionCreate, content string) {
+	if _, err := e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(),
+		discord.NewMessageUpdate().WithContent(content).ClearEmbeds().ClearComponents()); err != nil {
+		log.Printf("failed updating interaction response: %v", err)
 	}
 }

@@ -6,10 +6,11 @@ This is a Go rewrite of the original Python project.
 ## Requirements
 
 - **Go** 1.26+
-- A **C toolchain** + **ffmpeg** + several codec libraries (libogg, libvorbis,
-  libFLAC, plus ALSA on Linux and libopus on non-amd64) — this is a cgo program.
-  See [BUILDING.md](BUILDING.md) for the exact per-platform packages and server
-  build steps.
+- A **C/C++ toolchain** + **ffmpeg** + several libraries: codec libs (libogg,
+  libvorbis, libFLAC, plus ALSA on Linux and libopus on non-amd64) and
+  **libdave** for Discord's DAVE end-to-end-encrypted voice (required by Discord
+  since March 2026). This is a cgo program — see [BUILDING.md](BUILDING.md) for
+  the exact per-platform packages, the `libdave` install, and server build steps.
 - A **Discord bot token** with the *message content* and *voice* privileged intents,
   and permissions to read/send messages and connect/speak in voice channels.
 - A **Spotify Premium** account (required to stream Spotify audio).

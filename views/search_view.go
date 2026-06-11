@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/disgoorg/disgo/discord"
 
 	"github.com/GusPrice/dj-yosof/audio"
 )
@@ -18,31 +18,29 @@ const ComponentPrefix = "select"
 // one per search result. The custom id encodes the session key and the result
 // index so the handler can look up the chosen track. Ports SearchView /
 // SearchResultButton.
-func SearchComponents(sessionKey string, count int) []discordgo.MessageComponent {
+func SearchComponents(sessionKey string, count int) []discord.LayoutComponent {
 	if count > 5 {
 		count = 5
 	}
-	buttons := make([]discordgo.MessageComponent, 0, count)
+	buttons := make([]discord.InteractiveComponent, 0, count)
 	for i := 0; i < count; i++ {
-		buttons = append(buttons, discordgo.Button{
-			Label:    fmt.Sprintf("%d", i+1),
-			Style:    discordgo.PrimaryButton,
-			CustomID: fmt.Sprintf("%s:%s:%d", ComponentPrefix, sessionKey, i),
-		})
+		buttons = append(buttons, discord.NewPrimaryButton(
+			fmt.Sprintf("%d", i+1),
+			fmt.Sprintf("%s:%s:%d", ComponentPrefix, sessionKey, i),
+		))
 	}
-	return []discordgo.MessageComponent{discordgo.ActionsRow{Components: buttons}}
+	return []discord.LayoutComponent{discord.NewActionRow(buttons...)}
 }
 
 // SearchEmbed renders the list of search results as an embed.
-func SearchEmbed(tracks []audio.PlayableAudio) *discordgo.MessageEmbed {
+func SearchEmbed(tracks []audio.PlayableAudio) discord.Embed {
 	var b strings.Builder
 	for i, t := range tracks {
 		fmt.Fprintf(&b, "%d. %s\n", i+1, t.DisplayName())
 	}
-	return &discordgo.MessageEmbed{
-		Title:       "Search Results",
-		Description: b.String(),
-	}
+	return discord.NewEmbed().
+		WithTitle("Search Results").
+		WithDescription(b.String())
 }
 
 // ParseComponentID splits a selection custom id into its session key and result

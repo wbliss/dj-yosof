@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bwmarrin/discordgo"
+	dvoice "github.com/disgoorg/disgo/voice"
 	"github.com/kkdai/youtube/v2"
 
 	"github.com/GusPrice/dj-yosof/audio"
@@ -37,7 +37,7 @@ func NewYoutubeSource() *YoutubeSource {
 }
 
 // Play implements Source. Ports YoutubeSource.play + load_track.
-func (y *YoutubeSource) Play(ctx context.Context, track audio.PlayableAudio, vc *discordgo.VoiceConnection) error {
+func (y *YoutubeSource) Play(ctx context.Context, track audio.PlayableAudio, conn dvoice.Conn) error {
 	yt, ok := track.(*audio.YoutubeTrack)
 	if !ok {
 		return fmt.Errorf("youtube: unexpected track type %T", track)
@@ -60,7 +60,7 @@ func (y *YoutubeSource) Play(ctx context.Context, track audio.PlayableAudio, vc 
 	defer func() { _ = stream.Close() }()
 
 	// Let ffmpeg auto-detect the container/codec from the stream.
-	return voice.Stream(ctx, vc, nil, stream)
+	return voice.Stream(ctx, conn, nil, stream)
 }
 
 // selectAudioFormat picks the best audio-only format, falling back to any

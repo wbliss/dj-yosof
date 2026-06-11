@@ -2,7 +2,7 @@
 // source, mirroring djyosof/audio_types in the original Python project.
 package audio
 
-import "github.com/bwmarrin/discordgo"
+import "github.com/disgoorg/disgo/discord"
 
 // Type identifies which source a track came from.
 type Type string
@@ -18,7 +18,7 @@ const (
 // YoutubeTrack implement it, allowing the queue to be source-agnostic.
 type PlayableAudio interface {
 	// Embed renders the "Now Playing" embed for this track.
-	Embed() *discordgo.MessageEmbed
+	Embed() discord.Embed
 	// Type returns the source type of this track.
 	Type() Type
 	// DisplayName returns a short human-readable label, used in the queue list.

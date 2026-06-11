@@ -15,6 +15,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential pkg-config ffmpeg \
             libogg-dev libvorbis-dev libflac-dev libasound2-dev
+      - name: Install libdave (DAVE E2EE)
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/disgoorg/godave/v0.1.0/scripts/libdave_install.sh -o /tmp/libdave_install.sh
+          NON_INTERACTIVE=1 sh /tmp/libdave_install.sh v1.1.0
+          echo "PKG_CONFIG_PATH=$HOME/.local/lib/pkgconfig" >> "$GITHUB_ENV"
+          echo "LD_LIBRARY_PATH=$HOME/.local/lib" >> "$GITHUB_ENV"
       - name: Check formatting
         run: |
           unformatted=$(gofmt -l $(git ls-files '*.go' ':!:vendor/**'))

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/disgoorg/disgo/discord"
 )
 
 // YoutubeTrack holds the metadata needed to display and stream a YouTube video.
@@ -17,14 +17,11 @@ type YoutubeTrack struct {
 }
 
 // Embed implements PlayableAudio.
-func (t *YoutubeTrack) Embed() *discordgo.MessageEmbed {
-	return &discordgo.MessageEmbed{
-		Title: "Now Playing",
-		Fields: []*discordgo.MessageEmbedField{
-			{Name: "Title", Value: fmt.Sprintf("[%s](%s)", t.Title, t.WatchURL)},
-		},
-		Image: &discordgo.MessageEmbedImage{URL: t.ThumbnailURL},
-	}
+func (t *YoutubeTrack) Embed() discord.Embed {
+	return discord.NewEmbed().
+		WithTitle("Now Playing").
+		AddField("Title", fmt.Sprintf("[%s](%s)", t.Title, t.WatchURL), false).
+		WithImage(t.ThumbnailURL)
 }
 
 // Type implements PlayableAudio.

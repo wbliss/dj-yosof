@@ -17,12 +17,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bwmarrin/discordgo"
 	librespot "github.com/devgianlu/go-librespot"
 	"github.com/devgianlu/go-librespot/ap"
 	splayer "github.com/devgianlu/go-librespot/player"
 	devicespb "github.com/devgianlu/go-librespot/proto/spotify/connectstate/devices"
 	"github.com/devgianlu/go-librespot/session"
+	dvoice "github.com/disgoorg/disgo/voice"
 
 	"github.com/GusPrice/dj-yosof/audio"
 	"github.com/GusPrice/dj-yosof/util"
@@ -168,7 +168,7 @@ func (s *SpotifySource) Close() {
 }
 
 // Play implements Source. Ports SpotifySource.play + load_track.
-func (s *SpotifySource) Play(ctx context.Context, track audio.PlayableAudio, vc *discordgo.VoiceConnection) error {
+func (s *SpotifySource) Play(ctx context.Context, track audio.PlayableAudio, conn dvoice.Conn) error {
 	st, ok := track.(*audio.SpotifyTrack)
 	if !ok {
 		return fmt.Errorf("spotify: unexpected track type %T", track)
@@ -187,7 +187,7 @@ func (s *SpotifySource) Play(ctx context.Context, track audio.PlayableAudio, vc 
 	// go-librespot decodes to 44100Hz stereo float32 PCM; tell ffmpeg the raw
 	// input format so it can resample to Discord's 48kHz.
 	inputArgs := []string{"-f", "s16le", "-ar", strconv.Itoa(splayer.SampleRate), "-ac", strconv.Itoa(splayer.Channels)}
-	return voice.Stream(ctx, vc, inputArgs, newPCMReader(stream.Source))
+	return voice.Stream(ctx, conn, inputArgs, newPCMReader(stream.Source))
 }
 
 // Search implements Source. Ports SpotifySource.search.

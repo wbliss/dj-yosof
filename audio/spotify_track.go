@@ -3,7 +3,7 @@ package audio
 import (
 	"fmt"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/disgoorg/disgo/discord"
 )
 
 // SpotifyTrack holds the metadata needed to display and stream a Spotify track.
@@ -18,16 +18,13 @@ type SpotifyTrack struct {
 }
 
 // Embed implements PlayableAudio.
-func (t *SpotifyTrack) Embed() *discordgo.MessageEmbed {
-	return &discordgo.MessageEmbed{
-		Title: "Now Playing",
-		Fields: []*discordgo.MessageEmbedField{
-			{Name: "Track", Value: t.Name},
-			{Name: "Artist", Value: t.Artist},
-			{Name: "Album", Value: t.Album},
-		},
-		Image: &discordgo.MessageEmbedImage{URL: t.AlbumArtURL},
-	}
+func (t *SpotifyTrack) Embed() discord.Embed {
+	return discord.NewEmbed().
+		WithTitle("Now Playing").
+		AddField("Track", t.Name, false).
+		AddField("Artist", t.Artist, false).
+		AddField("Album", t.Album, false).
+		WithImage(t.AlbumArtURL)
 }
 
 // Type implements PlayableAudio.

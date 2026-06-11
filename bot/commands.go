@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/snowflake/v2"
 
 	"github.com/GusPrice/dj-yosof/audio"
 	"github.com/GusPrice/dj-yosof/util"
@@ -13,153 +15,154 @@ import (
 )
 
 // commands defines the slash commands, mirroring the Python cogs.
-var commands = []*discordgo.ApplicationCommand{
-	{Name: "hello", Description: "Say hello"},
-	{Name: "join", Description: "Join your voice channel"},
-	{Name: "leave", Description: "Leave the voice channel"},
-	{
+var commands = []discord.ApplicationCommandCreate{
+	discord.SlashCommandCreate{Name: "hello", Description: "Say hello"},
+	discord.SlashCommandCreate{Name: "join", Description: "Join your voice channel"},
+	discord.SlashCommandCreate{Name: "leave", Description: "Leave the voice channel"},
+	discord.SlashCommandCreate{
 		Name:        "spotify",
 		Description: "Play a Spotify track/album/playlist link, or search Spotify",
-		Options: []*discordgo.ApplicationCommandOption{
-			{Type: discordgo.ApplicationCommandOptionString, Name: "query", Description: "Link or search terms", Required: true},
+		Options: []discord.ApplicationCommandOption{
+			discord.ApplicationCommandOptionString{Name: "query", Description: "Link or search terms", Required: true},
 		},
 	},
-	{
+	discord.SlashCommandCreate{
 		Name:        "yt",
 		Description: "Play a YouTube link, or search YouTube",
-		Options: []*discordgo.ApplicationCommandOption{
-			{Type: discordgo.ApplicationCommandOptionString, Name: "query", Description: "Link or search terms", Required: true},
+		Options: []discord.ApplicationCommandOption{
+			discord.ApplicationCommandOptionString{Name: "query", Description: "Link or search terms", Required: true},
 		},
 	},
-	{Name: "pause", Description: "Pause playback"},
-	{Name: "queue", Description: "Show the queue"},
-	{Name: "skip", Description: "Skip the current track"},
-	{Name: "stop", Description: "Stop playback and clear the queue"},
+	discord.SlashCommandCreate{Name: "pause", Description: "Pause playback"},
+	discord.SlashCommandCreate{Name: "queue", Description: "Show the queue"},
+	discord.SlashCommandCreate{Name: "skip", Description: "Skip the current track"},
+	discord.SlashCommandCreate{Name: "stop", Description: "Stop playback and clear the queue"},
 }
 
 func (b *Bot) registerCommands() error {
-	appID := b.session.State.User.ID
-	for _, guildID := range b.cfg.GuildIDs {
-		for _, cmd := range commands {
-			if _, err := b.session.ApplicationCommandCreate(appID, guildID, cmd); err != nil {
-				return fmt.Errorf("creating %q in guild %s: %w", cmd.Name, guildID, err)
-			}
+	for _, gid := range b.cfg.GuildIDs {
+		guildID, err := snowflake.Parse(gid)
+		if err != nil {
+			return fmt.Errorf("invalid guild id %q: %w", gid, err)
+		}
+		if _, err := b.client.Rest.SetGuildCommands(b.client.ApplicationID, guildID, commands); err != nil {
+			return fmt.Errorf("registering commands in guild %s: %w", gid, err)
 		}
 	}
 	return nil
 }
 
-func (b *Bot) handleCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	switch i.ApplicationCommandData().Name {
+func (b *Bot) handleCommand(e *events.ApplicationCommandInteractionCreate) {
+	switch e.SlashCommandInteractionData().CommandName() {
 	case "hello":
-		respond(s, i, fmt.Sprintf("Hi, <@%s>", i.Member.User.ID))
+		reply(e, fmt.Sprintf("Hi, %s", e.User().Mention()))
 	case "join":
-		b.cmdJoin(s, i)
+		b.cmdJoin(e)
 	case "leave":
-		b.cmdLeave(s, i)
+		b.cmdLeave(e)
 	case "spotify":
-		b.cmdPlay(s, i, audio.TypeSpotify, util.IsSpotifyLink)
+		b.cmdPlay(e, audio.TypeSpotify, util.IsSpotifyLink)
 	case "yt":
-		b.cmdPlay(s, i, audio.TypeYoutube, util.IsYoutubeLink)
+		b.cmdPlay(e, audio.TypeYoutube, util.IsYoutubeLink)
 	case "pause":
-		respond(s, i, "Pause is not implemented yet")
+		reply(e, "Pause is not implemented yet")
 	case "queue":
-		b.cmdQueue(s, i)
+		b.cmdQueue(e)
 	case "skip":
-		b.mgr.Player(i.GuildID).Skip()
-		respond(s, i, "Skipped")
+		b.mgr.Player(*e.GuildID()).Skip()
+		reply(e, "Skipped")
 	case "stop":
-		b.mgr.Player(i.GuildID).Stop()
-		respond(s, i, "Stopped")
+		b.mgr.Player(*e.GuildID()).Stop()
+		reply(e, "Stopped")
 	}
 }
 
-func (b *Bot) cmdJoin(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	if _, err := voice.ConnectOrMove(s, i.GuildID, i.Member.User.ID); err != nil {
-		respond(s, i, err.Error())
+func (b *Bot) cmdJoin(e *events.ApplicationCommandInteractionCreate) {
+	// Connecting now includes the DAVE handshake and can exceed the 3s reply
+	// window, so defer first and follow up.
+	_ = e.DeferCreateMessage(false)
+	if _, err := voice.ConnectOrMove(b.client, *e.GuildID(), e.User().ID); err != nil {
+		followup(e, err.Error())
 		return
 	}
-	respond(s, i, "Joined your voice channel")
+	followup(e, "Joined your voice channel")
 }
 
-func (b *Bot) cmdLeave(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	if err := voice.Leave(s, i.GuildID); err != nil {
-		respond(s, i, fmt.Sprintf("Failed to leave: %v", err))
-		return
-	}
-	respond(s, i, "Left the voice channel")
+func (b *Bot) cmdLeave(e *events.ApplicationCommandInteractionCreate) {
+	voice.Leave(b.client, *e.GuildID())
+	reply(e, "Left the voice channel")
 }
 
 // cmdPlay handles both /spotify and /yt: link → enqueue immediately; otherwise
 // search and present selection buttons. Ports SpotifyCog.spotify / YoutubeCog.yt.
-func (b *Bot) cmdPlay(s *discordgo.Session, i *discordgo.InteractionCreate, srcType audio.Type, isLink func(string) bool) {
-	query := i.ApplicationCommandData().Options[0].StringValue()
+func (b *Bot) cmdPlay(e *events.ApplicationCommandInteractionCreate, srcType audio.Type, isLink func(string) bool) {
 	src := b.mgr.Source(srcType)
 	if src == nil {
-		respond(s, i, fmt.Sprintf("%s is not available", srcType))
+		reply(e, fmt.Sprintf("%s is not available", srcType))
 		return
 	}
+	query := e.SlashCommandInteractionData().String("query")
 
-	deferResponse(s, i)
+	_ = e.DeferCreateMessage(false)
 	ctx := context.Background()
 
 	if isLink(query) {
 		tracks, err := src.OpenLink(ctx, query)
 		if err != nil {
-			followup(s, i, fmt.Sprintf("Couldn't load that link: %v", err))
+			followup(e, fmt.Sprintf("Couldn't load that link: %v", err))
 			return
 		}
 		if len(tracks) == 0 {
-			followup(s, i, "That link had no playable tracks")
+			followup(e, "That link had no playable tracks")
 			return
 		}
-		if !b.enqueueAll(s, i, tracks) {
+		if !b.enqueueAll(e, tracks) {
 			return
 		}
-		followup(s, i, fmt.Sprintf("Added %d track(s) to the queue", len(tracks)))
+		followup(e, fmt.Sprintf("Added %d track(s) to the queue", len(tracks)))
 		return
 	}
 
 	tracks, err := src.Search(ctx, query)
 	if err != nil {
-		followup(s, i, fmt.Sprintf("Search failed: %v", err))
+		followup(e, fmt.Sprintf("Search failed: %v", err))
 		return
 	}
 	if len(tracks) == 0 {
-		followup(s, i, "No results")
+		followup(e, "No results")
 		return
 	}
 
-	b.cacheSearch(i.ID, tracks)
-	followupComplex(s, i, &discordgo.WebhookParams{
-		Embeds:     []*discordgo.MessageEmbed{views.SearchEmbed(tracks)},
-		Components: views.SearchComponents(i.ID, len(tracks)),
-	})
+	key := e.ID().String()
+	b.cacheSearch(key, tracks)
+	followupComplex(e, discord.NewMessageCreate().
+		WithEmbeds(views.SearchEmbed(tracks)).
+		WithComponents(views.SearchComponents(key, len(tracks))...))
 }
 
 // enqueueAll connects to voice and enqueues every track, playing the first.
 // Returns false (after sending an error followup) if joining voice fails.
-func (b *Bot) enqueueAll(s *discordgo.Session, i *discordgo.InteractionCreate, tracks []audio.PlayableAudio) bool {
-	if _, err := voice.ConnectOrMove(s, i.GuildID, i.Member.User.ID); err != nil {
-		followup(s, i, err.Error())
+func (b *Bot) enqueueAll(e *events.ApplicationCommandInteractionCreate, tracks []audio.PlayableAudio) bool {
+	if _, err := voice.ConnectOrMove(b.client, *e.GuildID(), e.User().ID); err != nil {
+		followup(e, err.Error())
 		return false
 	}
-	ap := b.mgr.Player(i.GuildID)
-	ap.EnqueueAndPlay(tracks[0], i.ChannelID)
+	ap := b.mgr.Player(*e.GuildID())
+	ap.EnqueueAndPlay(tracks[0], e.Channel().ID())
 	for _, t := range tracks[1:] {
 		ap.Enqueue(t)
 	}
 	return true
 }
 
-func (b *Bot) cmdQueue(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	ap := b.mgr.Player(i.GuildID)
+func (b *Bot) cmdQueue(e *events.ApplicationCommandInteractionCreate) {
+	ap := b.mgr.Player(*e.GuildID())
 	nowPlaying, queue := ap.Snapshot()
 	if nowPlaying == nil && len(queue) == 0 {
-		respond(s, i, "The queue is empty")
+		reply(e, "The queue is empty")
 		return
 	}
-	respond(s, i, ap.QueueText(true, true))
+	reply(e, ap.QueueText(true, true))
 }
 
 // --- search result cache ---
@@ -182,22 +185,27 @@ func (b *Bot) takeSearch(key string) ([]audio.PlayableAudio, bool) {
 
 // handleComponent handles a search-result button press. Ports
 // SearchResultButton.callback.
-func (b *Bot) handleComponent(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	key, index, ok := views.ParseComponentID(i.MessageComponentData().CustomID)
+func (b *Bot) handleComponent(e *events.ComponentInteractionCreate) {
+	key, index, ok := views.ParseComponentID(e.ButtonInteractionData().CustomID())
 	if !ok {
 		return
 	}
 	tracks, found := b.takeSearch(key)
 	if !found || index < 0 || index >= len(tracks) {
-		updateMessage(s, i, "That selection has expired")
+		_ = e.UpdateMessage(discord.NewMessageUpdate().
+			WithContent("That selection has expired").
+			ClearEmbeds().
+			ClearComponents())
 		return
 	}
 
 	track := tracks[index]
-	if _, err := voice.ConnectOrMove(s, i.GuildID, i.Member.User.ID); err != nil {
-		updateMessage(s, i, err.Error())
+	// Ack now (connecting may exceed the 3s window), then edit the message.
+	_ = e.DeferUpdateMessage()
+	if _, err := voice.ConnectOrMove(b.client, *e.GuildID(), e.User().ID); err != nil {
+		editComponent(e, err.Error())
 		return
 	}
-	b.mgr.Player(i.GuildID).EnqueueAndPlay(track, i.ChannelID)
-	updateMessage(s, i, fmt.Sprintf("Added %s", track.DisplayName()))
+	b.mgr.Player(*e.GuildID()).EnqueueAndPlay(track, e.Channel().ID())
+	editComponent(e, fmt.Sprintf("Added %s", track.DisplayName()))
 }

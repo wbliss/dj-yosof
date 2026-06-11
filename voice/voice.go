@@ -4,49 +4,53 @@
 package voice
 
 import (
+	"context"
 	"errors"
+	"time"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/disgoorg/disgo/bot"
+	dvoice "github.com/disgoorg/disgo/voice"
+	"github.com/disgoorg/snowflake/v2"
 )
 
 // ErrNotInVoice is returned when the requesting user is not in a voice channel.
 var ErrNotInVoice = errors.New("you must be in a voice channel")
 
-// userVoiceChannel finds the voice channel the given user is currently in.
-func userVoiceChannel(s *discordgo.Session, guildID, userID string) (string, error) {
-	g, err := s.State.Guild(guildID)
-	if err != nil {
-		return "", err
-	}
-	for _, vs := range g.VoiceStates {
-		if vs.UserID == userID {
-			return vs.ChannelID, nil
-		}
-	}
-	return "", ErrNotInVoice
-}
+// connectTimeout bounds the voice gateway handshake (which now includes the
+// DAVE/E2EE key exchange).
+const connectTimeout = 30 * time.Second
 
 // ConnectOrMove connects the bot to the user's voice channel, moving if it is
 // already connected to a different one. Ports utilities.connect_or_move.
-func ConnectOrMove(s *discordgo.Session, guildID, userID string) (*discordgo.VoiceConnection, error) {
-	channelID, err := userVoiceChannel(s, guildID, userID)
-	if err != nil {
+func ConnectOrMove(client *bot.Client, guildID, userID snowflake.ID) (dvoice.Conn, error) {
+	vs, ok := client.Caches.VoiceState(guildID, userID)
+	if !ok || vs.ChannelID == nil {
+		return nil, ErrNotInVoice
+	}
+
+	conn := client.VoiceManager.CreateConn(guildID)
+	if cid := conn.ChannelID(); cid != nil && *cid == *vs.ChannelID {
+		return conn, nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), connectTimeout)
+	defer cancel()
+	// Open connects, or moves an existing connection to the new channel.
+	if err := conn.Open(ctx, *vs.ChannelID, false, true); err != nil {
 		return nil, err
 	}
-
-	if vc, ok := s.VoiceConnections[guildID]; ok && vc.ChannelID == channelID && vc.Ready {
-		return vc, nil
-	}
-
-	// ChannelVoiceJoin connects, or moves an existing connection.
-	return s.ChannelVoiceJoin(guildID, channelID, false, true)
+	return conn, nil
 }
 
 // Leave disconnects the bot from the guild's voice channel. Ports
 // utilities.leave.
-func Leave(s *discordgo.Session, guildID string) error {
-	if vc, ok := s.VoiceConnections[guildID]; ok {
-		return vc.Disconnect()
+func Leave(client *bot.Client, guildID snowflake.ID) {
+	conn := client.VoiceManager.GetConn(guildID)
+	if conn == nil {
+		return
 	}
-	return nil
+	ctx, cancel := context.WithTimeout(context.Background(), connectTimeout)
+	defer cancel()
+	conn.Close(ctx)
+	client.VoiceManager.RemoveConn(guildID)
 }
