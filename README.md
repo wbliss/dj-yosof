@@ -37,8 +37,21 @@ which authenticates with **OAuth2** (Spotify removed username/password login).
 On the first run the bot prints an authorization URL to the console — open it,
 log in, and authorize. The resulting credentials are cached in
 `spotify_credentials_file` and reused on subsequent runs, so you only do this
-once. (If you run headless, complete the login on a machine with a browser and
-copy the credentials file over.)
+once.
+
+The authorization redirects to a one-off callback server at
+`http://127.0.0.1:<port>/login` **on the machine running the bot**. On a
+headless/remote server that address won't be reachable from your laptop's
+browser, so use one of:
+
+- **Authorize locally, copy the file (simplest):** run the bot on a machine with
+  a browser, complete the login (the callback is local, so it works), then copy
+  the generated `spotify_credentials.json` to the server next to its
+  `config.yaml` (`scp spotify_credentials.json user@server:/path/to/dj-yosof/`).
+  The credentials include the device id, so they're portable.
+- **SSH port-forward:** set a fixed `spotify_oauth_callback_port` (e.g. `8888`),
+  connect with `ssh -L 8888:127.0.0.1:8888 user@server`, then open the printed
+  URL in your laptop browser — the redirect tunnels back to the server.
 
 ### Spotify search & links (developer app)
 
