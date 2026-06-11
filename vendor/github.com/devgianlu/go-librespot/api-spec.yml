@@ -1,0 +1,300 @@
+openapi: 3.0.0
+info:
+  version: 0.1.0
+  title: go-librespot API
+  description: go-librespot daemon API
+
+components:
+  schemas:
+    track:
+      description: A track
+      type: object
+      properties:
+        uri:
+          description: URI
+          type: string
+        name:
+          description: Name
+          type: string
+        artist_names:
+          description: Artists name
+          type: array
+          items:
+            - description: Artist name
+              type: string
+        album_name:
+          description: Album name
+          type: string
+        album_cover_url:
+          description: Album cover URL
+          type: string
+        duration:
+          description: Duration in milliseconds
+          type: integer
+    play:
+      description: An initiate playback payload
+      type: object
+      properties:
+        uri:
+          description: Spotify URI to start playing
+          type: string
+        skip_to_uri:
+          description: Spotify URI to skip to (when playing playlists)
+          type: string
+        paused:
+          description: Start playback as paused
+          type: boolean
+paths:
+  /:
+    get:
+      description: Returns API reachability and playback readiness
+      responses:
+        200:
+          description: API is ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  playback_ready:
+                    description: Whether the daemon is fully bootstrapped and ready to accept /player/play
+                    type: boolean
+  /status:
+    get:
+      description: Returns the player status
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    description: Currently active account's username
+                    type: string
+                  device_id:
+                    description: The player device ID
+                    type: string
+                  device_name:
+                    description: The player device name
+                    type: string
+                  play_origin:
+                    description: Who started the playback, "go-librespot" identifies the API as the play origin, everything else is Spotify own stuff
+                    type: string
+                  stopped:
+                    description: Whether the player is stopped
+                    type: boolean
+                  paused:
+                    description: Whether the player is paused
+                    type: boolean
+                  buffering:
+                    description: Whether the player is buffering
+                    type: boolean
+                  volume:
+                    description: The player current volume from 0 to max
+                    type: number
+                    minimum: 0
+                  volume_steps:
+                    description: The player max volume value
+                    type: number
+                  repeat_context:
+                    description: Whether the repeat context feature is enabled
+                    type: boolean
+                  repeat_track:
+                    description: Whether the repeat track feature is enabled
+                    type: boolean
+                  shuffle_context:
+                    description: Whether the shuffle context feature is enabled
+                    type: boolean
+                  track:
+                    $ref: '#/components/schemas/track'
+  /set_device_name:
+    post:
+      description: Set the player device name
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ name ]
+              properties:
+                name:
+                  description: The new device name
+                  type: string
+      responses:
+        200:
+          description: Successful response
+  /player/play:
+    post:
+      description: Starts playing new content
+      requestBody:
+        $ref: '#/components/schemas/play'
+      responses:
+        200:
+          description: Successful response
+  /player/resume:
+    post:
+      description: Resume playback (from paused state)
+      responses:
+        200:
+          description: Successful response
+  /player/pause:
+    post:
+      description: Pause playback (from playing state)
+      responses:
+        200:
+          description: Successful response
+  /player/stop:
+    post:
+      description: Stop playback and disconnect session
+      responses:
+        200:
+          description: Successful response
+  /player/playpause:
+    post:
+      description: Resume playback when paused, or pause playback when playing
+      responses:
+        200:
+          description: Successful response
+  /player/next:
+    post:
+      description: Skip to next track
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uri:
+                  type: string
+                  description: The track URI to skip to
+      responses:
+        200:
+          description: Successful response
+  /player/prev:
+    post:
+      description: Skip to previous track (or rewind current track)
+      responses:
+        200:
+          description: Successful response
+  /player/seek:
+    post:
+      description: Seek current track
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ position ]
+              properties:
+                position:
+                  description: Seek position in milliseconds
+                  type: integer
+                relative:
+                  description: Whether the seek position is relative to the current one
+                  type: boolean
+                  default: false
+      responses:
+        200:
+          description: Successful response
+  /player/volume:
+    get:
+      description: Get player volume
+      responses:
+        200:
+          description: Returns the player volume settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  value:
+                    type: integer
+                    description: The current volume, ranging from 0 to max
+                  max:
+                    type: integer
+                    description: The max volume value
+    post:
+      description: Set player volume
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ volume ]
+              properties:
+                volume:
+                  description: Volume from 0 to max
+                  type: number
+                relative:
+                  description: Whether to change the volume relative to the current volume
+                  type: boolean
+                  default: false
+      responses:
+        200:
+          description: Successful response
+  /player/repeat_context:
+    post:
+      description: Toggle repeating context
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ repeat_context ]
+              properties:
+                repeat_context:
+                  description: Whether repeating context should be enabled
+                  type: boolean
+      responses:
+        200:
+          description: Successful response
+  /player/repeat_track:
+    post:
+      description: Toggle repeating track
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ repeat_track ]
+              properties:
+                repeat_track:
+                  description: Whether repeating track should be enabled
+                  type: boolean
+      responses:
+        200:
+          description: Successful response
+  /player/shuffle_context:
+    post:
+      description: Toggle shuffling context
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ shuffle_context ]
+              properties:
+                shuffle_context:
+                  description: Whether shuffling context should be enabled
+                  type: boolean
+      responses:
+        200:
+          description: Successful response
+  /player/add_to_queue:
+    post:
+      description: Add a track to the queue
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ uri ]
+              properties:
+                uri:
+                  description: The URI for the track that should be added
+                  type: string
+      responses:
+        200:
+          description: Successful response
