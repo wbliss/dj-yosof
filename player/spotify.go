@@ -8,10 +8,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -251,25 +253,62 @@ func (s *SpotifySource) OpenLink(ctx context.Context, link string) ([]audio.Play
 	}
 }
 
-// webAPI performs an authenticated Spotify Web API GET and decodes JSON into out.
-func (s *SpotifySource) webAPI(ctx context.Context, path string, query url.Values, out any) error {
-	resp, err := s.sess.WebApi(ctx, http.MethodGet, path, query, nil, nil)
-	if err != nil {
-		return fmt.Errorf("spotify web api %s: %w", path, err)
-	}
-	defer func() { _ = resp.Body.Close() }()
+// webAPI retry tuning for HTTP 429 (rate limit).
+const (
+	spotifyMaxRetries   = 3
+	spotifyMaxRetryWait = 15 * time.Second
+)
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("spotify web api %s: reading body: %w", path, err)
+// webAPI performs an authenticated Spotify Web API GET and decodes JSON into out.
+// It transparently retries on HTTP 429, honoring the Retry-After header, up to
+// spotifyMaxRetries times. If the server asks to wait longer than
+// spotifyMaxRetryWait, it returns a clear "try again" error instead of blocking.
+func (s *SpotifySource) webAPI(ctx context.Context, path string, query url.Values, out any) error {
+	for attempt := 0; ; attempt++ {
+		resp, err := s.sess.WebApi(ctx, http.MethodGet, path, query, nil, nil)
+		if err != nil {
+			return fmt.Errorf("spotify web api %s: %w", path, err)
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		if err != nil {
+			return fmt.Errorf("spotify web api %s: reading body: %w", path, err)
+		}
+
+		if resp.StatusCode == http.StatusTooManyRequests {
+			wait := retryAfter(resp.Header)
+			if attempt >= spotifyMaxRetries || wait > spotifyMaxRetryWait {
+				return fmt.Errorf("Spotify is rate limiting requests; try again in %d second(s)", int(wait.Seconds()))
+			}
+			log.Printf("[spotify] rate limited on %s, retrying in %s", path, wait)
+			select {
+			case <-time.After(wait):
+				continue
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			return fmt.Errorf("spotify web api %s: status %d: %s", path, resp.StatusCode, string(body))
+		}
+		if err := json.Unmarshal(body, out); err != nil {
+			return fmt.Errorf("spotify web api %s: decoding: %w", path, err)
+		}
+		return nil
 	}
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("spotify web api %s: status %d: %s", path, resp.StatusCode, string(body))
+}
+
+// retryAfter returns how long to wait before retrying a 429, taken from the
+// Retry-After header (delta-seconds), defaulting to 1s when absent/unparseable.
+func retryAfter(h http.Header) time.Duration {
+	if v := h.Get("Retry-After"); v != "" {
+		if secs, err := strconv.Atoi(strings.TrimSpace(v)); err == nil && secs >= 0 {
+			return time.Duration(secs) * time.Second
+		}
 	}
-	if err := json.Unmarshal(body, out); err != nil {
-		return fmt.Errorf("spotify web api %s: decoding: %w", path, err)
-	}
-	return nil
+	return time.Second
 }
 
 // --- Web API JSON shapes ---

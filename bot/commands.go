@@ -105,8 +105,12 @@ func (b *Bot) cmdPlay(s *discordgo.Session, i *discordgo.InteractionCreate, srcT
 
 	if isLink(query) {
 		tracks, err := src.OpenLink(ctx, query)
-		if err != nil || len(tracks) == 0 {
+		if err != nil {
 			followup(s, i, fmt.Sprintf("Couldn't load that link: %v", err))
+			return
+		}
+		if len(tracks) == 0 {
+			followup(s, i, "That link had no playable tracks")
 			return
 		}
 		if !b.enqueueAll(s, i, tracks) {
@@ -117,8 +121,12 @@ func (b *Bot) cmdPlay(s *discordgo.Session, i *discordgo.InteractionCreate, srcT
 	}
 
 	tracks, err := src.Search(ctx, query)
-	if err != nil || len(tracks) == 0 {
-		followup(s, i, fmt.Sprintf("No results: %v", err))
+	if err != nil {
+		followup(s, i, fmt.Sprintf("Search failed: %v", err))
+		return
+	}
+	if len(tracks) == 0 {
+		followup(s, i, "No results")
 		return
 	}
 
