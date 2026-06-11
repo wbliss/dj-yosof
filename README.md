@@ -6,20 +6,20 @@ This is a Go rewrite of the original Python project.
 ## Requirements
 
 - **Go** 1.26+
-- **ffmpeg** — audio transcoding
-  - macOS: `brew install ffmpeg`
-  - Linux: `apt install ffmpeg`
-- **opus** — Opus codec (linked via cgo by the `gopus` encoder)
-  - macOS: `brew install opus`
-  - Linux: `apt install libopus-dev`
+- A **C toolchain** + **ffmpeg** + **libogg/libvorbis** (and **libopus** on
+  non-amd64) — this is a cgo program. See [BUILDING.md](BUILDING.md) for the
+  exact per-platform packages and server build steps.
 - A **Discord bot token** with the *message content* and *voice* privileged intents,
   and permissions to read/send messages and connect/speak in voice channels.
 - A **Spotify Premium** account (required to stream Spotify audio).
 
+Dependencies are vendored under `vendor/`, so builds need no module downloads.
+
 ## Setup
 
-1. Copy `config.yaml.example` to `config.yaml` and fill it out.
-2. Build: `go build .`
+1. Install the build dependencies — see [BUILDING.md](BUILDING.md).
+2. Copy `config.yaml.example` to `config.yaml` and fill it out.
+3. Build: `go build .`
 
 ## Run
 
