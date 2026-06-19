@@ -1,6 +1,6 @@
 import logging
 
-from discord import ApplicationContext, Interaction, User
+from discord import Interaction, User
 from discord.voice.client import VoiceClient
 
 
