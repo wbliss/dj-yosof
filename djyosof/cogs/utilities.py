@@ -10,7 +10,6 @@ async def connect_or_move(
     # yeah this won't work
     if not author_voice:
         logging.info("User not in voice channel")
-        await ctx.respond("Join a voice channel first.")
         return None
 
     author_voice_channel = author_voice.channel
