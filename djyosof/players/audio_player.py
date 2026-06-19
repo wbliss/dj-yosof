@@ -5,7 +5,7 @@ import traceback
 from asyncio import Event, Queue, sleep
 from typing import TYPE_CHECKING
 
-from discord import Interaction, VoiceClient, Message, TextChannel
+from discord import Interaction, Message, TextChannel, VoiceClient
 
 from djyosof.audio_types.playable_audio import PlayableAudio
 from djyosof.cogs import utilities

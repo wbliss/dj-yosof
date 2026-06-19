@@ -2,10 +2,10 @@ import logging
 import sys
 
 from djyosof.bot import DJYosof
-from djyosof.cogs.system import SystemCog
-from djyosof.cogs.spotify import SpotifyCog
-from djyosof.cogs.youtube import YoutubeCog
 from djyosof.cogs.audio_player import AudioPlayerCog
+from djyosof.cogs.spotify import SpotifyCog
+from djyosof.cogs.system import SystemCog
+from djyosof.cogs.youtube import YoutubeCog
 from settings import CONFIG
 
 logging.basicConfig(level=logging.INFO)
