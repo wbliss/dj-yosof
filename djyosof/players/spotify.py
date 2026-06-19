@@ -1,4 +1,6 @@
 import logging
+import base64
+from settings import CONFIG
 import re
 from collections.abc import Callable
 
@@ -10,17 +12,11 @@ from librespot.core import Session
 from librespot.metadata import TrackId
 
 from djyosof.audio_types.spotify import SpotifyTrack
-from settings import CONFIG
 
 
 class SpotifySource:
     def __init__(self):
-        self.session_builder = Session.Builder().stored_file()
-        if not self.session_builder.login_credentials:
-            self.session_builder = Session.Builder().user_pass(
-                CONFIG.get("spotify_user"), CONFIG.get("spotify_pass")
-            )
-        self.session = self.session_builder.create()
+        self.session = Session.Builder().oauth(None).create()
 
     def load_track(self, track: SpotifyTrack):
         track_id = TrackId.from_uri(f"spotify:track:{track.track_id}")  # anti-hero
@@ -33,7 +29,7 @@ class SpotifySource:
         ):  # TODO: catch specific exceptions, possible decorator for this functionality
             # retry after creating a new session
             logging.info("Spotify session expired, creating new one")
-            self.session = self.session_builder.create()
+            self.session = Session.Builder().oauth(None).create()
             stream = self.session.content_feeder().load(
                 track_id, VorbisOnlyAudioQuality(AudioQuality.VERY_HIGH), False, None
             )
@@ -58,11 +54,11 @@ class SpotifySource:
         media_id = matcher.group(2)
 
         try:
-            token = self.session.tokens().get("user-read-email")
+            token = self._get_token()
         except Exception:
             logging.info("Spotify session expired, creating new one")
-            self.session = self.session_builder.create()
-            token = self.session.tokens().get("user-read-email")
+            self.session = Session.Builder().oauth(None).create()
+            token = self._get_token()
 
         resp = requests.get(
             f"https://api.spotify.com/v1/{media_type}s/{media_id}",
@@ -87,12 +83,12 @@ class SpotifySource:
 
     def search(self, query: str) -> list[SpotifyTrack]:
         try:
-            token = self.session.tokens().get("user-read-email")
+            token = self._get_token()
         except Exception:
             # retry after creating new session
             logging.info("Spotify session expired, creating new one")
-            self.session = self.session_builder.create()
-            token = self.session.tokens().get("user-read-email")
+            self.session = Session.Builder().oauth(None).create()
+            token = self._get_token()
 
         resp = requests.get(
             "https://api.spotify.com/v1/search",
@@ -115,3 +111,21 @@ class SpotifySource:
     ):
         audio = self.load_track(track)
         voice.play(audio, after=after)
+
+    def _get_token(self):
+        auth = base64.b64encode(
+            f"{CONFIG.get('spotify_client_id')}:{CONFIG.get('spotify_client_secret')}".encode()
+        ).decode()
+
+        response = requests.post(
+            "https://accounts.spotify.com/api/token",
+            headers={
+                "Authorization": f"Basic {auth}",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            data={"grant_type": "client_credentials"},
+        )
+
+        response.raise_for_status()
+
+        return response.json()["access_token"]

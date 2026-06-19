@@ -7,12 +7,14 @@ name = "pypi"
 pyyaml = "*"
 ipdb = "*"
 pynacl = "*"
-py-cord = "==2.7.0rc1"
 ffmpeg = "*"
 ffmpeg-python = "*"
 asyncio = "*"
-pytubefix = "*"
 librespot = {git = "https://github.com/kokarare1212/librespot-python"}
+pytube = "*"
+pytubefix = "*"
+pycord = "*"
+py-cord = {extras = ["voice"], version = "*"}
 
 [dev-packages]
 black = "*"
