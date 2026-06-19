@@ -49,7 +49,7 @@ class AudioPlayerCog(commands.Cog):
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def skip(self, ctx: ApplicationContext):
         audio_player = self.bot.audio_players[ctx.guild_id]
-        voice = await utilities.connect_or_move(ctx)
+        voice = await utilities.connect_or_move(ctx.interaction)
         if not voice:
             await ctx.respond("Unable to connect to a voice channel :(")
         audio_player.skip(voice)
@@ -58,7 +58,7 @@ class AudioPlayerCog(commands.Cog):
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def stop(self, ctx: ApplicationContext):
         audio_player = self.bot.audio_players[ctx.guild_id]
-        voice = await utilities.connect_or_move(ctx)
+        voice = await utilities.connect_or_move(ctx.interaction)
         if not voice:
             await ctx.respond("Unable to connect to a voice channel :(")
         audio_player.stop(voice)

@@ -16,7 +16,7 @@ class SystemCog(commands.Cog):
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def join(self, ctx: ApplicationContext):
-        voice = await utilities.connect_or_move(ctx)
+        voice = await utilities.connect_or_move(ctx.interaction)
         if not voice:
             await ctx.respond(f"Unable to join: {ctx.user.voice.channel}")
             return
@@ -25,5 +25,5 @@ class SystemCog(commands.Cog):
 
     @slash_command(guild_ids=CONFIG.get("guild_ids"))
     async def leave(self, ctx: ApplicationContext):
-        await utilities.leave(ctx)
+        await utilities.leave(ctx.interaction)
         await ctx.respond("Left voice channel.")
