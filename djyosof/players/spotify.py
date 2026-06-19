@@ -1,6 +1,5 @@
-import logging
 import base64
-from settings import CONFIG
+import logging
 import re
 from collections.abc import Callable
 
@@ -12,6 +11,7 @@ from librespot.core import Session
 from librespot.metadata import TrackId
 
 from djyosof.audio_types.spotify import SpotifyTrack
+from settings import CONFIG
 
 
 class SpotifySource:

@@ -13,7 +13,6 @@ asyncio = "*"
 librespot = {git = "https://github.com/kokarare1212/librespot-python"}
 pytube = "*"
 pytubefix = "*"
-pycord = "*"
 py-cord = {extras = ["voice"], version = "*"}
 
 [dev-packages]

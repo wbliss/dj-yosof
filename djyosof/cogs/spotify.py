@@ -31,7 +31,7 @@ class SpotifyCog(commands.Cog):
         # media doesn't exist
         if matcher:
             tracks = self.bot.players[AudioType.SPOTIFY].open_link(query)
-            voice = await utilities.connect_or_move(ctx)
+            voice = await utilities.connect_or_move(ctx.interaction)
             if not voice:
                 await ctx.respond("Unable to connect to a voice channel :(")
                 return

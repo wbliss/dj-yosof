@@ -5,7 +5,7 @@ import traceback
 from asyncio import Event, Queue, sleep
 from typing import TYPE_CHECKING
 
-from discord import ApplicationContext, VoiceClient, Message
+from discord import Interaction, Message, TextChannel, VoiceClient
 
 from djyosof.audio_types.playable_audio import PlayableAudio
 from djyosof.cogs import utilities
@@ -33,25 +33,32 @@ class AudioPlayer:
         self,
         track: PlayableAudio,
         voice: VoiceClient,
-        ctx: ApplicationContext,
+        ctx: Interaction,
     ):
         """Queues a track and begins the play loop it not currently running."""
         await self.enqueue(track, ctx)
         if not self.is_playing:
             self.bot.loop.create_task(self.play_loop(voice, ctx))
 
-    async def enqueue(self, track: PlayableAudio, ctx: ApplicationContext):
+    async def enqueue(self, track: PlayableAudio, ctx: Interaction):
         """Adds a track to the end of a queue."""
         await self.queue.put(track)
 
-    async def play_loop(self, voice: VoiceClient, ctx: ApplicationContext):
+    async def play_loop(self, voice: VoiceClient, ctx: Interaction):
         """Loop to play through any songs in the queue."""
         # Grab latest track off the queue and play it
         await self.bot.wait_until_ready()
         channel = self.bot.get_channel(ctx.channel_id)
+        if not channel:
+            logging.info("Could not find channel in play_loop")
+            return None
+
+        if not isinstance(channel, TextChannel):
+            logging.info("Bot can only respond in text channel")
+            return None
 
         self.is_playing = True
-        now_playing_message: Message = None
+        now_playing_message: Message | None = None
         while not self.bot.is_closed():
             self.next.clear()
 
@@ -114,7 +121,7 @@ class AudioPlayer:
 
         voice.stop()
 
-    def _get_queue_markdown(self, ctx: ApplicationContext):
+    def _get_queue_markdown(self, ctx: Interaction):
         queue_markdown = ""
         for idx, track in enumerate(
             ([self.now_playing] + list(self.queue._queue))[:10]
